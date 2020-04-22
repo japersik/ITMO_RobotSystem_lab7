@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %highlight{%-5level %logger{36} - %msg%n}{FATAL=bg__red, ERROR=red, WARN=yellow, INFO=Magenta}"/>
+        </Console>
+
+        <File name="MyFile" fileName="logs/lab6-serverLog_${date:yyyy-MM-dd HHmmssSSS}.log" immediateFlush="true">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="lab6.logger" level="debug" additivity="true">
+            <AppenderRef ref="Console"/>
+        </Logger>
+
+        <Logger name="lab6.fileLogger" level="debug" additivity="true">
+            <AppenderRef ref="MyFile"/>
+        </Logger>
+
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="MyFile"/>
+        </Root>
+    </Loggers>
+
+
+</Configuration>
