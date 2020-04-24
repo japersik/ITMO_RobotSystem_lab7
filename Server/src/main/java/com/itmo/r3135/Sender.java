@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketAddress;
 
 public class Sender {
     static final Logger logger = LogManager.getLogger("Sender");
@@ -20,7 +21,7 @@ public class Sender {
         this.socket = socket;
     }
 
-    public void send(ServerMessage serverMessage, DatagramPacket inputPacket) throws IOException, InterruptedException {
+    public void send(ServerMessage serverMessage, SocketAddress inputAddress) throws IOException, InterruptedException {
         byte[] message = toSerial(serverMessage);
 //        for (int i = 0; i < message.length; i++) {
 //            System.out.println(message[i]);
@@ -29,9 +30,7 @@ public class Sender {
         logger.info("Sending " + outMessages.length + " packages.");
         for (int i = 0; i < outMessages.length; i++) {
             byte[] packet = outMessages[i];
-            InetAddress addres = inputPacket.getAddress();
-            int outPort = inputPacket.getPort();
-            DatagramPacket output = new DatagramPacket(packet, packet.length, addres, outPort);
+            DatagramPacket output = new DatagramPacket(packet, packet.length, inputAddress);
             socket.send(output);
             if (outMessages.length > 4)
                 Thread.sleep(6);
