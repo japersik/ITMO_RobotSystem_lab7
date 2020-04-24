@@ -11,21 +11,26 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Scanner;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerWorker implements Mediator {
     static final Logger logger = LogManager.getLogger("ServerWorker");
-    private static final Semaphore SEMAPHORE = new Semaphore(1, true);
+    //   private static final Semaphore SEMAPHORE = new Semaphore(1, true);
     private int port;
     private DatagramSocket socket;
     private Gson gson;
     private Collection collection;
     private Sender sender;
     private Reader reader;
-
-
+    //Не знаю, зачни нам вообще многопоточное чтение запросов, ибо у нас всё равно udp
+    //ExecutorService readPool = Executors.newFixedThreadPool(3);
+    //пока один поток на исполнение, т.к. команды НЕпотокобезопасны для тестов
+    ExecutorService executePool = Executors.newFixedThreadPool(1);
+    ExecutorService sendPool = Executors.newFixedThreadPool(8);
 
     private AbstractCommand loadCollectionCommand;
     private AbstractCommand addCommand;
@@ -71,17 +76,14 @@ public class ServerWorker implements Mediator {
         this.port = port;
         logger.info("Server port: " + port);
         if (fileName == null) {
-//            System.out.println("Путь к файлу json не обнаружен.");
             logger.warn("File path " + fileName + " is wrong!!!");
             System.exit(1);
         }
         File jsonPath = new File(fileName);
         if (jsonPath.exists()) {
             collection.setJsonFile(jsonPath);
-//            System.out.println("Адрес " + this.collection.getJsonFile().toString() + " успешно обнаружен.");
             logger.info("Path " + fileName + " discovered.");
         } else {
-//            System.out.println("Указанного пути не существует.");
             logger.warn("Path " + fileName + " does not exist.");
             try {
                 logger.info("Create a new file.");
@@ -93,15 +95,12 @@ public class ServerWorker implements Mediator {
             }
         }
         if (!jsonPath.isFile()) {
-//            System.out.println("Путь " + jsonPath.toString() + " не содержит имени файла");
             logger.warn("Path " + fileName + " does not contain a file name.");
             System.exit(1);
         } else {
-//            System.out.println("Файл " + jsonPath.toString() + " успещно обнаружен.");
             logger.info("File " + fileName + " discovered.");
         }
         if (!(fileName.lastIndexOf(".json") == fileName.length() - 5)) {
-//            System.out.println("Заданный файл не в формате .json");
             logger.warn("Non .json file format.");
             System.exit(1);
         }
@@ -109,15 +108,12 @@ public class ServerWorker implements Mediator {
     }
 
     public void startWork() throws SocketException {
-//        System.out.println("Инициализация сервера.");
         logger.info("Server initialization.");
         socket = new DatagramSocket(port);
         sender = new Sender(socket);
         reader = new Reader(socket);
-//        System.out.println("Загрузка коллекции.");
         logger.info("Load collection.");
         loadCollectionCommand.activate(new Command(CommandList.LOAD));
-//        System.out.println("Запуск прошёл успешно, Потр: " + port);
         logger.info("Server started on port " + port + ".");
         Thread keyBoard = new Thread(() -> keyBoardWork());
         Thread datagramm = new Thread(() -> datagrammWork());
@@ -134,7 +130,7 @@ public class ServerWorker implements Mediator {
                 System.out.println("//:");
                 if (input.hasNextLine()) {
                     String inputString = input.nextLine();
-                    SEMAPHORE.acquire();
+//                    SEMAPHORE.acquire();
                     switch (inputString) {
                         case "exit":
                             logger.info("Command 'exit' from console.");
@@ -148,34 +144,58 @@ public class ServerWorker implements Mediator {
                         default:
                             logger.error("Bad command.");
                             logger.info("Available commands:'save','exit'.");
-//                            System.out.println("Доступные команды сервера: save, exit.");
                     }
-                    SEMAPHORE.release();
-                } else processing(new Command(CommandList.EXIT));
+//                    SEMAPHORE.release();
+                } else {
+                    processing(new Command(CommandList.SAVE));
+                    processing(new Command(CommandList.EXIT));
+                }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
     public void datagrammWork() {
         while (true) {
             try {
-
                 Command command = reader.nextCommand();
-                SEMAPHORE.acquire();
                 logger.info("New command " + command.getCommand() + " from " + reader.getInput().getSocketAddress() + ".");
-                ServerMessage message = processing(command);
-                logger.info("Command complete.");
-                logger.info("Sending server message.");
-                sender.send(message, reader.getInput());
-//                Thread.sleep(3000);// Для отладки
-            } catch (IOException | InterruptedException e) {
-                logger.error("Error in receive-send of command!!!");
-            } finally {
-                SEMAPHORE.release();
+                threadProcessing(command, reader.getInput().getSocketAddress());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
+//                Command command = reader.nextCommand();
+//                SEMAPHORE.acquire();
+//                logger.info("New command " + command.getCommand() + " from " + reader.getInput().getSocketAddress() + ".");
+//                ServerMessage message = processing(command);
+//                logger.info("Command complete.");
+//                logger.info("Sending server message.");
+//                sender.send(message, reader.getInput());
+////                Thread.sleep(3000);// Для отладки
+//            } catch (IOException | InterruptedException e) {
+//                logger.error("Error in receive-send of command!!!");
+//            } finally {
+//                SEMAPHORE.release();
+    }
+
+
+    private void threadProcessing(Command command, SocketAddress inputAddress) {
+        executePool.execute(() -> {
+            ServerMessage message = processing(command);
+            logger.info("Command from " + inputAddress + " complete.");
+            threadSend(message, inputAddress);
+        });
+    }
+
+    private void threadSend(ServerMessage message, SocketAddress inputAddress) {
+        sendPool.execute(() -> {
+            try {
+                logger.info("Sending server message to " + inputAddress + ".");
+                sender.send(message, inputAddress);
+            } catch (IOException | InterruptedException e) {
+                logger.error("Error in send of message on " + inputAddress + "!!!");
+            }
+        });
     }
 
     @Override

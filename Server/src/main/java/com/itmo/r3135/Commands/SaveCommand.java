@@ -31,7 +31,7 @@ public class SaveCommand extends AbstractCommand {
     @Override
     public ServerMessage activate(Command command) {
         logger.info("Save-process started.");
-        HashSet<Product> products = collection.getProducts();
+        HashSet<Product> products = (HashSet<Product>) collection.getProducts().clone();
         File jsonFile = collection.getJsonFile();
         Gson gson = new Gson();
         try {
@@ -49,17 +49,14 @@ public class SaveCommand extends AbstractCommand {
                 }
             } else if (!jsonFile.canRead() || !jsonFile.canWrite()) {
                 logger.error("Unable to save file. The file is protected from reading and (or) writing.");
-//                System.out.println("Невозможно сохранить файл. Файл защищён от чтения и(или) записи.");
             } else {
                 FileWriter fileWriter = new FileWriter(jsonFile);
                 try {
                     fileWriter.write(gson.toJson(products));
                     fileWriter.flush();
                     logger.info("File saved.");
-//                    System.out.println("Файл успешно сохранён.");
                 } catch (Exception ex) {
-                    logger.error("File save error.");
-//                    System.out.println("При записи файла что-то пошло не так.");
+                    logger.error("File save error. " +ex);
                 } finally {
                     fileWriter.close();
                 }
