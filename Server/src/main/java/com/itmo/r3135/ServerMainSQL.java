@@ -1,6 +1,6 @@
 package com.itmo.r3135;
 
-import com.itmo.r3135.SQLconnect.SQLconnectToMSserver;
+import com.itmo.r3135.SQLconnect.SQLManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,7 +38,7 @@ public class ServerMainSQL {
                 logger.info("The program has completed.");
                 System.exit(0);
             } else {
-                SQLconnectToMSserver server = new SQLconnectToMSserver();
+                SQLManager server = new SQLManager();
 //                try {
 //                    SQLconnectToMSserver server = new SQLconnectToMSserver();
 //                } catch (SQLException e) {

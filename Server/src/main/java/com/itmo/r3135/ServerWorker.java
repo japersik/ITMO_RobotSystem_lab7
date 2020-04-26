@@ -2,6 +2,7 @@ package com.itmo.r3135;
 
 import com.google.gson.Gson;
 import com.itmo.r3135.Commands.*;
+import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
@@ -26,7 +27,9 @@ public class ServerWorker implements Mediator {
     private Collection collection;
     private Sender sender;
     private Reader reader;
-    //Не знаю, зачни нам вообще многопоточное чтение запросов, ибо у нас всё равно udp
+
+    private SQLManager sqlManager;
+    //Не знаю, зачем нам вообще многопоточное чтение запросов, ибо у нас всё равно udp
     //ExecutorService readPool = Executors.newFixedThreadPool(3);
     //пока один поток на исполнение, т.к. команды НЕпотокобезопасны для тестов
     ExecutorService executePool = Executors.newFixedThreadPool(1);
@@ -72,6 +75,25 @@ public class ServerWorker implements Mediator {
         exitCommand = new ExitCommand(collection, this);
     }
 
+    public ServerWorker(int port) {
+        logger.info("Server initialization.");
+        this.port = port;
+        logger.info("Server port set: " + port);
+    }
+
+    //метод инициализации базы Данных
+    public boolean SQLInit(String host, int port, String dataBaseName, String user, String password) {
+        sqlManager = new SQLManager();
+        boolean isConnect = sqlManager.initDatabaseConnection(host, port, dataBaseName, user, password);
+        boolean isInit = sqlManager.initTables();
+        collection.setSqlManager(sqlManager);
+        return isConnect && isInit;
+    }
+
+    public boolean mailInit() {
+        return true;
+    }
+
     public ServerWorker(int port, String fileName) {
         this.port = port;
         logger.info("Server port: " + port);
@@ -108,7 +130,7 @@ public class ServerWorker implements Mediator {
     }
 
     public void startWork() throws SocketException {
-        logger.info("Server initialization.");
+        logger.info("Server start.");
         socket = new DatagramSocket(port);
         sender = new Sender(socket);
         reader = new Reader(socket);
@@ -161,7 +183,7 @@ public class ServerWorker implements Mediator {
                 logger.info("New command " + command.getCommand() + " from " + reader.getInput().getSocketAddress() + ".");
                 threadProcessing(command, reader.getInput().getSocketAddress());
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Error in receive-send of command!!!" + e);
             }
         }
 //                Command command = reader.nextCommand();
@@ -200,6 +222,7 @@ public class ServerWorker implements Mediator {
 
     @Override
     public ServerMessage processing(Command command) {
+//впихнуть проверку авторизации
 
         try {
             switch (command.getCommand()) {
@@ -239,11 +262,13 @@ public class ServerWorker implements Mediator {
                     return exitCommand.activate(command);
                 default:
                     logger.warn("Bad command!");
+                    return new ServerMessage("Битая команда!");
             }
         } catch (NumberFormatException ex) {
             logger.error("Bad number in command!!!");
+            return new ServerMessage("Ошибка записи числа в команде.");
         }
 
-        return new ServerMessage("Битая команда");
+
     }
 }
