@@ -1,6 +1,5 @@
 package com.itmo.r3135.Commands;
 
-import com.google.gson.JsonSyntaxException;
 import com.itmo.r3135.Collection;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
@@ -21,22 +20,17 @@ public class AddCommand extends AbstractCommand {
     @Override
     public ServerMessage activate(Command command) {
         HashSet<Product> products = this.collection.getProducts();
+        Product addProduct = command.getProduct();
+        addProduct.setCreationDate(java.time.LocalDateTime.now());
+        addProduct.setId(uniqueoIdGeneration(products));
+        if (addProduct.checkNull()) {
+//                System.out.println("Элемент не удовлетворяет требованиям коллекции");
+            return new ServerMessage(Product.printRequest());
+        } else if (products.add(addProduct)) {
+            collection.getDateChange();
+            return new ServerMessage("Элемент успешно добавлен.");
+        } else return new ServerMessage("Ошибка добавления элеемнта в коллекцию");
 
-        try {
-            Product addProduct = command.getProduct();
-
-            addProduct.setCreationDate(java.time.LocalDateTime.now());
-            addProduct.setId(uniqueoIdGeneration(products));
-            if (addProduct.checkNull()) {
-                System.out.println("Элемент не удовлетворяет требованиям коллекции");
-                return new ServerMessage(Product.printRequest());
-            } else if (products.add(addProduct)) {
-                collection.getDateChange();
-                return new ServerMessage("Элемент успешно добавлен.");
-            } else return new ServerMessage("Ошибка добавления элеемнта в коллекцию");
-        } catch (JsonSyntaxException ex) {
-            return new ServerMessage("Возникла ошибка синтаксиса Json. Элемент не был добавлен");
-        }
     }
 
     private int uniqueoIdGeneration(HashSet<Product> products) {

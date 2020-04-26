@@ -1,5 +1,6 @@
 package com.itmo.r3135;
 
+import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.World.Product;
 
 import java.io.File;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 public class Collection {
     private File jsonFile;
     private HashSet<Product> products;
+    private SQLManager sqlManager;
     private Date dateInitialization;
     private Date dateSave;
     private Date dateChange;
@@ -20,6 +22,9 @@ public class Collection {
         dateSave = new Date();
     }
 
+    public void setSqlManager(SQLManager sqlManager) {
+        this.sqlManager = sqlManager;
+    }
 
     public Collection(File jsonFile) {
         this.jsonFile = jsonFile;
@@ -30,16 +35,8 @@ public class Collection {
         this(null);
     }
 
-    public Date getDateInitialization() {
-        return dateInitialization;
-    }
-
     public Date getDateChange() {
         return dateChange;
-    }
-
-    public Date getDateSave() {
-        return dateSave;
     }
 
     public File getJsonFile() {
@@ -58,9 +55,6 @@ public class Collection {
         this.jsonFile = jsonFile;
     }
 
-    public void updateDateInitialization() {
-        this.dateInitialization = new Date();
-    }
 
     public void updateDateSave() {
         this.dateSave = new Date();
@@ -72,7 +66,7 @@ public class Collection {
 
     @Override
     public String toString() {
-        return  "------------------------" +
+        return "------------------------" +
                 "\nИнформация о коллекции:" +
                 "\n------------------------" +
                 "\n Количество элементов коллекции: " + products.size() +
