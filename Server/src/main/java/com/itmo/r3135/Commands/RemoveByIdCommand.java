@@ -23,6 +23,7 @@ public class RemoveByIdCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        collection.getLock().writeLock().unlock();
         HashSet<Product> products = collection.getProducts();
         int startSize = products.size();
         if (products.size() > 0) {
@@ -30,10 +31,15 @@ public class RemoveByIdCommand extends AbstractCommand {
             products.removeAll((products.parallelStream().filter(product -> product.getId() == id)
                     .collect(Collectors.toCollection(HashSet::new))));
             if (startSize == products.size()) {
+                collection.getLock().writeLock().unlock();
                 return new ServerMessage("Элемент с id " + id + " не существует.");
             }
             collection.uptadeDateChange();
+            collection.getLock().writeLock().unlock();
             return new ServerMessage("Элемент коллекции успешно удалён.");
-        } else return new ServerMessage("Коллекция пуста.");
+        } else {
+            collection.getLock().writeLock().unlock();
+            return new ServerMessage("Коллекция пуста.");
+        }
     }
 }

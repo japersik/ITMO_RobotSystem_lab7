@@ -23,6 +23,7 @@ public class GroupCountingByCoordinatesCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        collection.getLock().readLock().lock();
         HashSet<Product> products = collection.getProducts();
         if (!products.isEmpty()) {
             final String[] s = {new String()};
@@ -38,9 +39,13 @@ public class GroupCountingByCoordinatesCommand extends AbstractCommand {
             s[0] = s[0] + String.format("%20s%n", "Четвер четверть");
             products.parallelStream().filter(product -> product.getCoordinates().getX() >= 0 & product.getCoordinates().getY() < 0)
                     .forEach(product -> s[0] = s[0] + String.format("%-40s%-12s%-25s%n", product.getName(), product.getId(), product.getCoordinates().toString()));
-            return new ServerMessage(s[0]);
 
-        } else return new ServerMessage("Коллекция пуста.");
+            collection.getLock().readLock().unlock();
+            return new ServerMessage(s[0]);
+        } else {
+            collection.getLock().readLock().unlock();
+            return new ServerMessage("Коллекция пуста.");
+        }
     }
 }
 

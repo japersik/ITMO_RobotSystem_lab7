@@ -23,6 +23,7 @@ public class LoadCollectionCommand extends AbstractCommand {
 
     @Override
     public ServerMessage activate(Command command) {
+        collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
         try {
             logger.info("Loading collection from database: " + collection.getSqlManager().getConnection().getCatalog());
@@ -67,10 +68,12 @@ public class LoadCollectionCommand extends AbstractCommand {
                 products.add(product);
             }
             logger.info("Collections successfully uploaded. Added " + products.size() + " items.");
+            collection.getLock().writeLock().unlock();
             return new ServerMessage("Good.");
         } catch (SQLException e) {
-            logger.fatal("Reading line error");
+            logger.fatal("SQL reading error");
             e.printStackTrace();
+            collection.getLock().writeLock().unlock();
             return null;
         }
 

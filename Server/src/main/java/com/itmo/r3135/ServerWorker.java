@@ -36,7 +36,7 @@ public class ServerWorker implements Mediator {
     //Не знаю, зачем нам вообще многопоточное чтение запросов, ибо у нас всё равно udp
     //ExecutorService readPool = Executors.newFixedThreadPool(3);
     //пока один поток на исполнение, т.к. команды НЕпотокобезопасны для тестов
-    ExecutorService executePool = Executors.newFixedThreadPool(1);
+    ExecutorService executePool = Executors.newFixedThreadPool(8);
     ExecutorService sendPool = Executors.newFixedThreadPool(8);
 
     private AbstractCommand loadCollectionCommand;
@@ -54,8 +54,6 @@ public class ServerWorker implements Mediator {
     private AbstractCommand removeGreaterCommand;
     private AbstractCommand executeScriptCommand;
     private AbstractCommand infoCommand;
-    private AbstractCommand saveCommand;
-    private AbstractCommand exitCommand;
 
     {
         gson = new Gson();
@@ -75,8 +73,6 @@ public class ServerWorker implements Mediator {
         removeGreaterCommand = new RemoveGreaterCommand(collection, this);
         executeScriptCommand = new ExecuteScriptCommand(collection, this);
         infoCommand = new InfoCommand(collection, this);
-        saveCommand = new SaveCommand(collection, this);
-        exitCommand = new ExitCommand(collection, this);
     }
 
     public ServerWorker(int port) {
@@ -160,14 +156,9 @@ public class ServerWorker implements Mediator {
                     switch (inputString) {
                         case "exit":
                             logger.info("Command 'exit' from console.");
-//                            processing(new Command(CommandList.SAVE));
                             processing(new Command(CommandList.EXIT));
                             System.exit(666);
                             break;
-//                        case "save":
-//                            logger.info("Command 'save' from console.");
-//                            processing(new Command(CommandList.SAVE));
-//                            break;
                         default:
                             logger.error("Bad command.");
                             logger.info("Available commands:,'exit'.");
@@ -193,18 +184,6 @@ public class ServerWorker implements Mediator {
                 logger.error("Error in receive-send of command!!!" + e);
             }
         }
-//                Command command = reader.nextCommand();
-//                SEMAPHORE.acquire();
-//                logger.info("New command " + command.getCommand() + " from " + reader.getInput().getSocketAddress() + ".");
-//                ServerMessage message = processing(command);
-//                logger.info("Command complete.");
-//                logger.info("Sending server message.");
-//                sender.send(message, reader.getInput());
-////                Thread.sleep(3000);// Для отладки
-//            } catch (IOException | InterruptedException e) {
-//                logger.error("Error in receive-send of command!!!");
-//            } finally {
-//                SEMAPHORE.release();
     }
 
 
@@ -295,10 +274,6 @@ public class ServerWorker implements Mediator {
                     return filterContainsNameCommand.activate(command);
                 case PRINT_FIELD_DESCENDING_PRICE:
                     return printFieldDescendingPriceCommand.activate(command);
-                case SAVE:
-                    return saveCommand.activate(command);
-                case EXIT:
-                    return exitCommand.activate(command);
                 default:
                     logger.warn("Bad command!");
                     return new ServerMessage("Битая команда!");
