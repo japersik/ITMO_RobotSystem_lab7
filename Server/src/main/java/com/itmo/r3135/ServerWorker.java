@@ -135,7 +135,7 @@ public class ServerWorker implements Mediator {
         sender = new Sender(socket);
         reader = new Reader(socket);
         logger.info("Load collection.");
-        //loadCollectionCommand.activate(new Command(CommandList.LOAD));
+        loadCollectionCommand.activate(new Command(CommandList.LOAD));
         logger.info("Server started on port " + port + ".");
         Thread keyBoard = new Thread(() -> keyBoardWork());
         Thread datagramm = new Thread(() -> datagrammWork());
@@ -156,21 +156,21 @@ public class ServerWorker implements Mediator {
                     switch (inputString) {
                         case "exit":
                             logger.info("Command 'exit' from console.");
-                            processing(new Command(CommandList.SAVE));
+//                            processing(new Command(CommandList.SAVE));
                             processing(new Command(CommandList.EXIT));
                             System.exit(666);
                             break;
-                        case "save":
-                            logger.info("Command 'save' from console.");
-                            processing(new Command(CommandList.SAVE));
-                            break;
+//                        case "save":
+//                            logger.info("Command 'save' from console.");
+//                            processing(new Command(CommandList.SAVE));
+//                            break;
                         default:
                             logger.error("Bad command.");
-                            logger.info("Available commands:'save','exit'.");
+                            logger.info("Available commands:,'exit'.");
                     }
 //                    SEMAPHORE.release();
                 } else {
-                    processing(new Command(CommandList.SAVE));
+//                    processing(new Command(CommandList.SAVE));
                     processing(new Command(CommandList.EXIT));
                 }
             }

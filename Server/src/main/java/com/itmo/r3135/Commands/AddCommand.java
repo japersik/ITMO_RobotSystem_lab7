@@ -2,23 +2,17 @@ package com.itmo.r3135.Commands;
 
 import com.itmo.r3135.Collection;
 import com.itmo.r3135.Mediator;
-import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Person;
 import com.itmo.r3135.World.Product;
-
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.ZoneOffset;
-import java.sql.Connection;
-import java.sql.Statement;
-
 import java.util.HashSet;
-import java.util.Random;
 
 /**
  * Класс обработки комадны add
@@ -31,21 +25,33 @@ public class AddCommand extends AbstractCommand {
 
     @Override
     public ServerMessage activate(Command command) {
+        int userId = 0;
+        try {
+            PreparedStatement s = collection.getSqlManager().getConnection().prepareStatement("select id from users where email = ?");
+            s.setString(1, command.getLogin());
+            ResultSet resultSet = s.executeQuery();
+            if (resultSet.next()) userId = resultSet.getInt("id");
+        } catch (SQLException ignore) {
+        }
+        if (userId == 0) return new ServerMessage("Ошибка авторизации!");
         HashSet<Product> products = collection.getProducts();
         Product addProduct = command.getProduct();
-        addProductSQL(addProduct);
         addProduct.setCreationDate(java.time.LocalDateTime.now());
         if (addProduct.checkNull()) {
             return new ServerMessage(Product.printRequest());
-        } else if (products.add(addProduct)) {
-            collection.getDateChange();
-            return new ServerMessage("Элемент успешно добавлен.");
-        } else return new ServerMessage("Ошибка добавления элеемнта в коллекцию");
-
+        } else {
+            int id = addProductSQL(addProduct, userId);
+            if (id == -1) return new ServerMessage("Ошибка добавления элеемнта в базу данных");
+            else if (products.add(addProduct)) {
+                collection.updateDateChange();
+                return new ServerMessage("Элемент успешно добавлен.");
+            } else return new ServerMessage("Ошибка добавления элеемнта в коллекцию. НО. В базу он добавлени" +
+                    "Сообщите обэном случае в техническую поддержку.('info')");
+        }
     }
 
 
-    private int addProductSQL(Product product) {
+    public int addProductSQL(Product product, int userId) {
         int id = -1;
         int idOwner = addOwnerSQL(product.getOwner());
         if (idOwner != -1)
@@ -53,7 +59,7 @@ public class AddCommand extends AbstractCommand {
                 PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
                         "insert into products" +
                                 "(id,name, x, y, creationdate, price, partnumber, manufacturecost, unitofmeasure_id, user_id) " +
-                                "values (?,?,?,?,?,?,?,?,(select id from unitofmeasures where name = ?),?) returning id"
+                                "values (?,?,?,?,?,?,?,?,(select id from unitofmeasures where unitname = ?),?) returning id"
                 );
                 statement.setInt(1, idOwner);
                 statement.setString(2, product.getName());
@@ -64,7 +70,7 @@ public class AddCommand extends AbstractCommand {
                 statement.setString(7, product.getPartNumber());
                 statement.setDouble(8, product.getManufactureCost());
                 statement.setString(9, product.getUnitOfMeasure().toString());
-                statement.setInt(10, 1);
+                statement.setInt(10, userId);
 
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
@@ -96,24 +102,5 @@ public class AddCommand extends AbstractCommand {
             lal.printStackTrace();
         }
         return id;
-    }
-
-
-    private int uniqueoIdGeneration(HashSet<Product> products) {
-        Random r = new Random();
-        int newId;
-        int counter;
-        while (true) {
-            counter = 0;
-            newId = Math.abs(r.nextInt());
-            for (Product product : products) {
-                if (product.getId() == newId) {
-                    break;
-                } else counter++;
-            }
-            if (counter == products.size()) {
-                return newId;
-            }
-        }
     }
 }

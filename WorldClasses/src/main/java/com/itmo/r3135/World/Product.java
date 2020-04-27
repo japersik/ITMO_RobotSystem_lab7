@@ -16,6 +16,7 @@ public class Product implements Comparable<Product>, Serializable {
     private Float manufactureCost;
     private UnitOfMeasure unitOfMeasure;
     private Person owner;
+    private String userName = null;
 
     private final static String format = "%-30s%-20s%-20s%n";
 
@@ -50,6 +51,22 @@ public class Product implements Comparable<Product>, Serializable {
         this.unitOfMeasure = unitOfMeasure;
         this.owner = owner;
         idCounter++;
+    }
+
+    public Product(int id, String name, Coordinates coordinates, LocalDateTime creationDate, Double price, String partNumber, Float manufactureCost, UnitOfMeasure unitOfMeasure, Person owner) {
+        this.id = id;
+        this.name = name;
+        this.coordinates = coordinates;
+        this.creationDate = creationDate;
+        this.price = price;
+        this.partNumber = partNumber;
+        this.manufactureCost = manufactureCost;
+        this.unitOfMeasure = unitOfMeasure;
+        this.owner = owner;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     /**
@@ -251,6 +268,7 @@ public class Product implements Comparable<Product>, Serializable {
                 "Стоимость изготовления: " + manufactureCost + "\n" +
                 "Единицы измерения: " + unitOfMeasure + "\n" +
                 "Владелец: " + owner + "\n" +
+                "Создатель: " + userName + "\n" +
                 "------------------------------------------------------------------------\n";
     }
 }

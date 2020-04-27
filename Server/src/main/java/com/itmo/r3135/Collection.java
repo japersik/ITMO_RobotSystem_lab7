@@ -78,4 +78,7 @@ public class Collection {
                 "\n Дата последнего сохранения: " + dateSave +
                 "\n Дата последнего изменения: " + dateChange;
     }
+
+    public void updateDateChange() {this.dateSave = new Date();
+    }
 }

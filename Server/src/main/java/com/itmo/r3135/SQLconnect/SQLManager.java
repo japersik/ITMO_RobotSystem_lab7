@@ -38,7 +38,7 @@ public class SQLManager {
             Statement statement = connection.createStatement();
             //Таблица данных пользователей
             statement.execute("create table if not exists users (" +
-                    "id serial primary key not null, name text, email text unique, password_hash bytea)"
+                    "id serial primary key not null, username text, email text unique, password_hash bytea)"
             );
             //таблица с color
             statement.execute("CREATE TABLE if not exists colors " +
@@ -58,12 +58,12 @@ public class SQLManager {
                     "foreign key (ownerHairColor_id) references colors(id))");
             //таблица с unitOfMeasure
             statement.execute("CREATE TABLE if not exists unitOfMeasures " +
-                    "(Id int primary key generated always as  Identity ,name varchar(20) NOT NULL UNIQUE )");
+                    "(Id int primary key generated always as  Identity ,unitname varchar(20) NOT NULL UNIQUE )");
             UnitOfMeasure[] unitOfMeasures =
                     {UnitOfMeasure.GRAMS, UnitOfMeasure.LITERS, UnitOfMeasure.MILLIGRAMS, UnitOfMeasure.PCS};
             try {
                 for (UnitOfMeasure unitOfMeasure : unitOfMeasures)
-                    statement.execute("insert into unitOfMeasures(name) values('" + unitOfMeasure + "') ");
+                    statement.execute("insert into unitOfMeasures(unitname) values('" + unitOfMeasure + "') ");
             } catch (SQLException ignore) {//пока не знаю, как избежать ошибок дубликата, пожтому так.
             }
             //кривая таблица Product
