@@ -149,7 +149,7 @@ public class ServerWorker implements Mediator {
         try (Scanner input = new Scanner(System.in);) {
             input.delimiter();
             while (true) {
-                System.out.println("//:");
+                System.out.print("//: ");
                 if (input.hasNextLine()) {
                     String inputString = input.nextLine();
 //                    SEMAPHORE.acquire();
@@ -158,6 +158,7 @@ public class ServerWorker implements Mediator {
                             logger.info("Command 'exit' from console.");
                             processing(new Command(CommandList.SAVE));
                             processing(new Command(CommandList.EXIT));
+                            System.exit(666);
                             break;
                         case "save":
                             logger.info("Command 'save' from console.");
@@ -173,7 +174,7 @@ public class ServerWorker implements Mediator {
                     processing(new Command(CommandList.EXIT));
                 }
             }
-        }
+        } catch (Exception e){e.printStackTrace();}
     }
 
     public void datagrammWork() {
