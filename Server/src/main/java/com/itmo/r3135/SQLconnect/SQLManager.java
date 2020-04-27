@@ -1,15 +1,12 @@
 package com.itmo.r3135.SQLconnect;
 
 import com.itmo.r3135.System.Command;
-import com.itmo.r3135.World.Color;
-import com.itmo.r3135.World.UnitOfMeasure;
+import com.itmo.r3135.World.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.ZoneOffset;
 
 public class SQLManager {
     static final Logger logger = LogManager.getLogger("SQLManager");
@@ -45,7 +42,7 @@ public class SQLManager {
             );
             //таблица с color
             statement.execute("CREATE TABLE if not exists colors " +
-                    "(Id int primary key generated always as  Identity ,Name varchar(20) NOT NULL UNIQUE )");
+                    "(Id int primary key generated always as Identity ,Name varchar(20) NOT NULL UNIQUE )");
             Color[] colors = {Color.BLACK, Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
             try {
                 for (Color color : colors)
@@ -78,19 +75,14 @@ public class SQLManager {
                     "foreign key (id) references owners(id)," +
                     "foreign key (user_id) references users(id))"
             );
-            //SEQUENCE для генерации ID
-            statement.execute("CREATE SEQUENCE idSequence\n" +
-                    "    MINVALUE 1000000000\n" +
-                    "    MAXVALUE 9999999999\n" +
-                    "    START WITH 1000000000\n" +
-                    "    INCREMENT BY 2\n" +
-                    "    NO CYCLE;");
+
             return true;
         } catch (SQLException e) {
             logger.fatal("Error in tables initialisation.");
             return false;
         }
     }
+
 
     public boolean checkCommandUser(Command command) {
         return true;
