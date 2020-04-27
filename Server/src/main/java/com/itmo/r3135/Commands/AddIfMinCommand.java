@@ -9,9 +9,7 @@ import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Product;
 
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны add_if_min
@@ -26,6 +24,7 @@ public class AddIfMinCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
         try {
             if (products.size() != 0) {
@@ -34,11 +33,19 @@ public class AddIfMinCommand extends AbstractCommand {
                 if (addProduct.compareTo(minElem) < 0) {
                     serverWorker.processing(new Command(CommandList.ADD, addProduct));
                     collection.getDateChange();
-                } else return new ServerMessage("Элемент не минимальный!");
-            } else return new ServerMessage("Коллекция пуста, минимальный элемент отсутствует.");
+                } else {
+                    collection.getLock().writeLock().unlock();
+                    return new ServerMessage("Элемент не минимальный!");
+                }
+            } else {
+                collection.getLock().writeLock().unlock();
+                return new ServerMessage("Коллекция пуста, минимальный элемент отсутствует.");
+            }
         } catch (JsonSyntaxException | SQLException ex) {
+            collection.getLock().writeLock().unlock();
             return new ServerMessage("Возникла ошибка синтаксиса Json. Элемент не был добавлен");
         }
+        collection.getLock().writeLock().unlock();
         return null;
     }
 }

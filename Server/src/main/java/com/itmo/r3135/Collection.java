@@ -6,29 +6,31 @@ import com.itmo.r3135.World.Product;
 import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Collection {
     private File jsonFile;
-    private HashSet<Product> products;
-    private SQLManager sqlManager;
-    private Date dateInitialization;
-    private Date dateSave;
-    private Date dateChange;
 
-    {
-        products = new HashSet<>();
-        dateInitialization = new Date();
-        dateChange = new Date();
-        dateSave = new Date();
-    }
+    private HashSet<Product> products = new HashSet<>();
+    private SQLManager sqlManager;
+    private Date dateInitialization = new Date();
+    private Date dateSave = new Date();
+    private Date dateChange = new Date();
+    private ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public void setSqlManager(SQLManager sqlManager) {
         this.sqlManager = sqlManager;
     }
 
 
-    public SQLManager getSqlManager(){return sqlManager; }
+    public SQLManager getSqlManager() {
+        return sqlManager;
+    }
 
+    public ReadWriteLock getLock() {
+        return lock;
+    }
 
     public Collection(File jsonFile) {
         this.jsonFile = jsonFile;
@@ -79,6 +81,7 @@ public class Collection {
                 "\n Дата последнего изменения: " + dateChange;
     }
 
-    public void updateDateChange() {this.dateSave = new Date();
+    public void updateDateChange() {
+        this.dateSave = new Date();
     }
 }

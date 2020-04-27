@@ -24,11 +24,10 @@ public class ShowCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        collection.getLock().readLock().lock();
         ArrayList<Product> products = new ArrayList<>(collection.getProducts());
-        //Надо добавить сортировку
-        products.sort(Comparator.comparingInt(o -> o.getName().length()));
+        collection.getLock().readLock().unlock();
         if (products.size() != 0) {
-//            for (Product product : products) System.out.println(product);
             return new ServerMessage("Список коллекции: ", products);
         } else return new ServerMessage("Коллекция пуста.");
 

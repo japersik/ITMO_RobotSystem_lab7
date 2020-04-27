@@ -22,15 +22,19 @@ public class ExecuteScriptCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        collection.getLock().writeLock().lock();
         HashSet<Product> oldProducts = new HashSet<>(collection.getProducts());
         try {
-//            System.out.println("Начинается анализ скрипта. Это может занять некоторое время");
-            for (Command executeCommand : command.getEcexuteCommands())
+            for (Command executeCommand : command.getEcexuteCommands()) {
+                executeCommand.setLoginPassword(command.getLogin(), command.getPassword());
                 serverWorker.processing(executeCommand);
-            collection.getDateChange();
+            }
+            collection.updateDateChange();
+            collection.getLock().readLock().unlock();
             return new ServerMessage("Скрикт был выполнен.");
         } catch (Exception e) {
             collection.setProducts(oldProducts);
+            collection.getLock().readLock().unlock();
             return new ServerMessage("Скрикт не был выполнен. Коллекция не изменилась. Если проблема посторится, обратитесь к в тех. поддержку.");
         }
     }

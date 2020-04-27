@@ -13,6 +13,9 @@ public class InfoCommand extends AbstractCommand {
 
     @Override
     public ServerMessage activate(Command command) {
-        return new ServerMessage(collection.toString());
+        collection.getLock().readLock().lock();
+        String s = collection.toString();
+        collection.getLock().readLock().unlock();
+        return new ServerMessage(s);
     }
 }

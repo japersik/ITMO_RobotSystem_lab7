@@ -21,8 +21,10 @@ public class ClearCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
         products.clear();
+        collection.getLock().writeLock().unlock();
         return new ServerMessage("Коллекция очищена.");
 
     }

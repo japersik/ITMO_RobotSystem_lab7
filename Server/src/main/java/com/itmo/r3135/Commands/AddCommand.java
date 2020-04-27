@@ -27,27 +27,35 @@ public class AddCommand extends AbstractCommand {
     public ServerMessage activate(Command command) {
         int userId = 0;
         try {
-            PreparedStatement s = collection.getSqlManager().getConnection().prepareStatement("select id from users where email = ?");
+            PreparedStatement s = collection.getSqlManager().getConnection()
+                    .prepareStatement("select id from users where email = ?");
             s.setString(1, command.getLogin());
             ResultSet resultSet = s.executeQuery();
             if (resultSet.next()) userId = resultSet.getInt("id");
         } catch (SQLException ignore) {
         }
         if (userId == 0) return new ServerMessage("Ошибка авторизации!");
+        collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
         Product addProduct = command.getProduct();
         addProduct.setCreationDate(java.time.LocalDateTime.now());
         if (addProduct.checkNull()) {
+            collection.getLock().writeLock().unlock();
             return new ServerMessage(Product.printRequest());
         } else {
             int id = addProductSQL(addProduct, userId);
             if (id == -1) return new ServerMessage("Ошибка добавления элеемнта в базу данных");
             else if (products.add(addProduct)) {
                 collection.updateDateChange();
+                collection.getLock().writeLock().unlock();
                 return new ServerMessage("Элемент успешно добавлен.");
-            } else return new ServerMessage("Ошибка добавления элеемнта в коллекцию. НО. В базу он добавлени" +
-                    "Сообщите обэном случае в техническую поддержку.('info')");
+            } else {
+                collection.getLock().writeLock().unlock();
+                return new ServerMessage("Ошибка добавления элеемнта в коллекцию. НО. В базу он добавлени" +
+                        "Сообщите обэном случае в техническую поддержку.('info')");
+            }
         }
+
     }
 
 

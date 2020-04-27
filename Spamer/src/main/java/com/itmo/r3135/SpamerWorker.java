@@ -8,8 +8,11 @@ import com.itmo.r3135.World.Generator;
 import com.itmo.r3135.World.Product;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Random;
 
@@ -23,7 +26,7 @@ public class SpamerWorker {
             CommandList.EXECUTE_SCRIPT, CommandList.ADD_IF_MIN,
             //CommandList.REMOVE_GREATER,
             // CommandList.REMOVE_LOWER,
-             CommandList.GROUP_COUNTING_BY_COORDINATES, CommandList.FILTER_CONTAINS_NAME, CommandList.PRINT_FIELD_DESCENDING_PRICE, CommandList.CHECK};
+            CommandList.GROUP_COUNTING_BY_COORDINATES, CommandList.FILTER_CONTAINS_NAME, CommandList.PRINT_FIELD_DESCENDING_PRICE, CommandList.CHECK};
 
     {
         stringCommandManager = new StringCommandManager();
@@ -86,6 +89,7 @@ public class SpamerWorker {
                     if (!product.checkNull()) break;
                 }
                 command = new Command(typeCommand, product);
+                command.setLoginPassword("1234", sha384("1234"));
             } else continue;
             manager.send(command);
             Thread.sleep(1);
@@ -102,7 +106,9 @@ public class SpamerWorker {
         datagramChannel.disconnect();
         datagramChannel.socket().setSoTimeout(1000);
         Date sendDate = new Date();
-        manager.send(new Command(CommandList.CHECK, "Привет"));
+        Command command = new Command(CommandList.LOGIN, "Привет");
+        command.setLoginPassword("1234", sha384("1234"));
+        manager.send(command);
         ServerMessage recive = manager.recive();
         if (recive != null) {
             System.out.println(recive.getMessage());
@@ -117,4 +123,19 @@ public class SpamerWorker {
         } else return false;
     }
 
+    public String sha384(String password) {
+        if (password == null) return password;
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-384");
+            byte[] messageDigest = md.digest(password.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+            return hashtext;
+        } catch (NoSuchAlgorithmException e) {
+            return password;
+        }
+    }
 }
