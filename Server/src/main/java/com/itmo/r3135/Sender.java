@@ -23,9 +23,6 @@ public class Sender {
 
     public void send(ServerMessage serverMessage, SocketAddress inputAddress) throws IOException, InterruptedException {
         byte[] message = toSerial(serverMessage);
-//        for (int i = 0; i < message.length; i++) {
-//            System.out.println(message[i]);
-//        }
         byte[][] outMessages = DatagramTrimer.trimByte(message);
         logger.info("Sending " + outMessages.length + " packages.");
         for (int i = 0; i < outMessages.length; i++) {

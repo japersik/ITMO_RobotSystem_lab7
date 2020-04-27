@@ -26,6 +26,10 @@ public class Collection {
         this.sqlManager = sqlManager;
     }
 
+    public SQLManager getSqlManager() {
+        return sqlManager;
+    }
+
     public Collection(File jsonFile) {
         this.jsonFile = jsonFile;
     }

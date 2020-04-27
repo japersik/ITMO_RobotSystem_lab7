@@ -181,6 +181,25 @@ public class Product implements Comparable<Product>, Serializable {
         System.out.println(s);
     }
 
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public String getPartNumber() {
+        return partNumber;
+    }
+
+    public Float getManufactureCost() {
+        return manufactureCost;
+    }
+
+    public UnitOfMeasure getUnitOfMeasure() {
+        return unitOfMeasure;
+    }
+
+    public Person getOwner() {
+        return owner;
+    }
 
     public static String printRequest() {
         return ("------------------------\n" +

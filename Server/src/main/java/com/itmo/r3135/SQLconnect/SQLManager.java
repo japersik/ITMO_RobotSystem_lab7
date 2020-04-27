@@ -1,15 +1,12 @@
 package com.itmo.r3135.SQLconnect;
 
 import com.itmo.r3135.System.Command;
-import com.itmo.r3135.World.Color;
-import com.itmo.r3135.World.UnitOfMeasure;
+import com.itmo.r3135.World.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.time.ZoneOffset;
 
 public class SQLManager {
     static final Logger logger = LogManager.getLogger("SQLManager");
@@ -56,7 +53,7 @@ public class SQLManager {
             );
             //таблица с color
             statement.execute("CREATE TABLE if not exists colors " +
-                    "(Id int primary key generated always as  Identity ,Name varchar(20) NOT NULL UNIQUE )");
+                    "(Id int primary key generated always as Identity ,Name varchar(20) NOT NULL UNIQUE )");
             Color[] colors = {Color.BLACK, Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
             try {
                 for (Color color : colors)
@@ -68,11 +65,11 @@ public class SQLManager {
             statement.execute("create table if not exists owners " +
                     "(id serial primary key not null, ownerName text, ownerBirthday timestamp," +
                     "ownerEyeColor_id int,ownerHairColor_id int," +
-                    " foreign key (ownerEyeColor_id) references colors(id)," +
+                    "foreign key (ownerEyeColor_id) references colors(id)," +
                     "foreign key (ownerHairColor_id) references colors(id))");
             //таблица с unitOfMeasure
             statement.execute("CREATE TABLE if not exists unitOfMeasures " +
-                    "(Id int primary key generated always as  Identity ,color varchar(20) NOT NULL UNIQUE )");
+                    "(Id int primary key generated always as Identity ,name  varchar(20) NOT NULL UNIQUE )");
             UnitOfMeasure[] unitOfMeasures =
                     {UnitOfMeasure.GRAMS, UnitOfMeasure.LITERS, UnitOfMeasure.MILLIGRAMS, UnitOfMeasure.PCS};
             try {
@@ -90,13 +87,13 @@ public class SQLManager {
                     "foreign key (user_id) references users(id))"
             );
 
-
             return true;
         } catch (SQLException e) {
             logger.fatal("Error in tables initialisation.");
             return false;
         }
     }
+
 
     public boolean checkCommandUser(Command command) {
 
