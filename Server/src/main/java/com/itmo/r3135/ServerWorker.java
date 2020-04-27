@@ -256,8 +256,7 @@ public class ServerWorker implements Mediator {
                     logger.error("Попытка добавления по существующему ключу");
                     return new ServerMessage("Такой пользователь уже существует!");
                 }
-                if (statement.execute()) return new ServerMessage("Successful registration!");
-                else return new ServerMessage("Error registration!");
+                return new ServerMessage("Successful registration!");
             }
         } catch (SQLException e) {
             logger.error("Бда, бда SQLException");
