@@ -156,7 +156,7 @@ public class ServerWorker implements Mediator {
                     switch (inputString) {
                         case "exit":
                             logger.info("Command 'exit' from console.");
-                            processing(new Command(CommandList.EXIT));
+//                            processing(new Command(CommandList.EXIT));
                             System.exit(666);
                             break;
                         default:
@@ -166,7 +166,8 @@ public class ServerWorker implements Mediator {
 //                    SEMAPHORE.release();
                 } else {
 //                    processing(new Command(CommandList.SAVE));
-                    processing(new Command(CommandList.EXIT));
+                    System.exit(666);
+//                    processing(new Command(CommandList.EXIT));
                 }
             }
         } catch (Exception e) {
