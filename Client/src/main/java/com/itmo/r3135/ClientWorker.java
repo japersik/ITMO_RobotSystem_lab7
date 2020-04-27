@@ -49,13 +49,13 @@ public class ClientWorker {
                         if (command != null) {
                             if (command.getCommand() == CommandList.LOGIN) {
                                 login = command.getLogin();
-                                password = sha384(password);
+                                password = sha384(command.getPassword());
                                 this.connectionCheck();
                             } else if (this.connectionCheck()) {
                                 if (command.getCommand() != CommandList.REG) command.setLoginPassword(login, password);
                                 else {
                                     login = command.getLogin();
-                                    password = sha384(password);
+                                    password = sha384(command.getPassword());
                                     command.setPassword(password);
                                 }
                                 manager.send(command);
@@ -106,6 +106,7 @@ public class ClientWorker {
     }
 
     public String sha384(String password){
+        if (password == null) return password;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-384");
             byte[] messageDigest = md.digest(password.getBytes());
