@@ -7,8 +7,11 @@ import com.itmo.r3135.System.Tools.StringCommandManager;
 import com.itmo.r3135.World.Product;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 
@@ -32,6 +35,7 @@ public class ClientWorker {
     }
 
     public void startWork() throws IOException {
+
         String commandString = "";
         try (Scanner commandReader = new Scanner(System.in)) {
             System.out.print("//: ");
@@ -45,10 +49,15 @@ public class ClientWorker {
                         if (command != null) {
                             if (command.getCommand() == CommandList.LOGIN) {
                                 login = command.getLogin();
-                                password = command.getPassword();
+                                password = sha384(password);
                                 this.connectionCheck();
                             } else if (this.connectionCheck()) {
                                 if (command.getCommand() != CommandList.REG) command.setLoginPassword(login, password);
+                                else {
+                                    login = command.getLogin();
+                                    password = sha384(password);
+                                    command.setPassword(password);
+                                }
                                 manager.send(command);
                                 ServerMessage message = manager.recive();
                                 if (message != null) {
@@ -96,4 +105,19 @@ public class ClientWorker {
         } else return false;
     }
 
+    public String sha384(String password){
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-384");
+            byte[] messageDigest = md.digest(password.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+            return hashtext;
+        }
+        catch (NoSuchAlgorithmException e) {
+            return password;
+        }
+    }
 }
