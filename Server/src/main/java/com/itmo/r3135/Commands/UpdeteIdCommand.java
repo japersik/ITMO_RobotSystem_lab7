@@ -8,6 +8,7 @@ import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Product;
 
+import java.sql.SQLException;
 import java.util.HashSet;
 
 /**
@@ -39,7 +40,7 @@ public class UpdeteIdCommand extends AbstractCommand {
                         return new ServerMessage("Элемент успешно обновлён.");
                     } else return new ServerMessage("При замене элементов что-то пошло не так");
             }
-        } catch (JsonSyntaxException ex) {
+        } catch (JsonSyntaxException | SQLException ex) {
             return new ServerMessage("Возникла ошибка при замене элемента");
         }
         return  null;

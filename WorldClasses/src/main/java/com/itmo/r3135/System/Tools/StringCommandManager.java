@@ -33,6 +33,7 @@ public class StringCommandManager {
                         break;
                     case "reg":
                         command = new Command(CommandList.REG);
+                        command.setLoginPassword(trimCommand[1].split(" ",2)[0],trimCommand[1].split(" ",2)[1]);
                         break;
                     case "":
                         System.out.println("Команда отсутствует");
