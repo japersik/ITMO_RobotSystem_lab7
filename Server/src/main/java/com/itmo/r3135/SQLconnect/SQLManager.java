@@ -12,17 +12,6 @@ public class SQLManager {
     static final Logger logger = LogManager.getLogger("SQLManager");
     private Connection connection;
 
-    public SQLManager() {
-//        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/studs", "postgres", "12345678");) {
-//            logger.info("Connect to basedate is successful");
-////            connection.
-//            System.out.println(connection.getClientInfo());
-//        } catch (SQLException e) {
-//            logger.error(e);
-//            logger.error(e);
-//        }
-    }
-
     public boolean initDatabaseConnection(String host, int port, String dataBaseName, String user, String password) {
         logger.info("Database connect...");
 //        try {
@@ -69,7 +58,7 @@ public class SQLManager {
                     "foreign key (ownerHairColor_id) references colors(id))");
             //таблица с unitOfMeasure
             statement.execute("CREATE TABLE if not exists unitOfMeasures " +
-                    "(Id int primary key generated always as Identity ,name  varchar(20) NOT NULL UNIQUE )");
+                    "(Id int primary key generated always as  Identity ,name varchar(20) NOT NULL UNIQUE )");
             UnitOfMeasure[] unitOfMeasures =
                     {UnitOfMeasure.GRAMS, UnitOfMeasure.LITERS, UnitOfMeasure.MILLIGRAMS, UnitOfMeasure.PCS};
             try {
@@ -82,7 +71,7 @@ public class SQLManager {
                     "(id serial primary key not null , name text, x float,y double precision," +
                     "creationDate timestamp,price double precision, partNumber text," +
                     "manufactureCost float, unitOfMeasure_id  int,user_id integer," +
-                    " foreign key (unitOfMeasure_id) references unitofmeasures(id)," +
+                    "foreign key (unitOfMeasure_id) references unitofmeasures(id)," +
                     "foreign key (id) references owners(id)," +
                     "foreign key (user_id) references users(id))"
             );
@@ -96,7 +85,6 @@ public class SQLManager {
 
 
     public boolean checkCommandUser(Command command) {
-
         return true;
     }
 

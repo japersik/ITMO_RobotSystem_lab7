@@ -2,16 +2,21 @@ package com.itmo.r3135.Commands;
 
 import com.itmo.r3135.Collection;
 import com.itmo.r3135.Mediator;
+import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Person;
 import com.itmo.r3135.World.Product;
+
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.ZoneOffset;
+import java.sql.Connection;
+import java.sql.Statement;
+
 import java.util.HashSet;
 import java.util.Random;
 
@@ -22,6 +27,7 @@ public class AddCommand extends AbstractCommand {
     public AddCommand(Collection collection, Mediator serverWorker) {
         super(collection, serverWorker);
     }
+
 
     @Override
     public ServerMessage activate(Command command) {
@@ -110,5 +116,4 @@ public class AddCommand extends AbstractCommand {
             }
         }
     }
-
 }

@@ -135,7 +135,7 @@ public class ServerWorker implements Mediator {
         sender = new Sender(socket);
         reader = new Reader(socket);
         logger.info("Load collection.");
-        loadCollectionCommand.activate(new Command(CommandList.LOAD));
+        //loadCollectionCommand.activate(new Command(CommandList.LOAD));
         logger.info("Server started on port " + port + ".");
         Thread keyBoard = new Thread(() -> keyBoardWork());
         Thread datagramm = new Thread(() -> datagrammWork());
@@ -149,7 +149,7 @@ public class ServerWorker implements Mediator {
         try (Scanner input = new Scanner(System.in);) {
             input.delimiter();
             while (true) {
-                System.out.println("//:");
+                System.out.print("//: ");
                 if (input.hasNextLine()) {
                     String inputString = input.nextLine();
 //                    SEMAPHORE.acquire();
@@ -158,6 +158,7 @@ public class ServerWorker implements Mediator {
                             logger.info("Command 'exit' from console.");
                             processing(new Command(CommandList.SAVE));
                             processing(new Command(CommandList.EXIT));
+                            System.exit(666);
                             break;
                         case "save":
                             logger.info("Command 'save' from console.");
@@ -173,7 +174,7 @@ public class ServerWorker implements Mediator {
                     processing(new Command(CommandList.EXIT));
                 }
             }
-        }
+        } catch (Exception e){e.printStackTrace();}
     }
 
     public void datagrammWork() {
@@ -223,6 +224,15 @@ public class ServerWorker implements Mediator {
     @Override
     public ServerMessage processing(Command command) {
 //впихнуть проверку авторизации
+        if (command.getPassword() == null & command.getLogin() == null) {
+           return new ServerMessage("Good connect. Please write your's login and password!", false);
+        }
+        if (command.getCommand() == CommandList.LOGIN) {
+            return new ServerMessage("Good connect. Hello from server!");
+        }
+        if (command.getCommand() == CommandList.REG) {
+
+        }
 
         try {
             switch (command.getCommand()) {
@@ -268,7 +278,5 @@ public class ServerWorker implements Mediator {
             logger.error("Bad number in command!!!");
             return new ServerMessage("Ошибка записи числа в команде.");
         }
-
-
     }
 }

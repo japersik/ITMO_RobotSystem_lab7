@@ -17,6 +17,9 @@ public class ClientWorker {
     private DatagramChannel datagramChannel = DatagramChannel.open();
     private SocketAddress socketAddress;
     private StringCommandManager stringCommandManager;
+    private String login;
+    private String password;
+
 
     {
         stringCommandManager = new StringCommandManager();
@@ -40,7 +43,12 @@ public class ClientWorker {
                         commandString = commandReader.nextLine();
                         Command command = stringCommandManager.getCommandFromString(commandString);
                         if (command != null) {
-                            if (this.connectionCheck()) {
+                            if (command.getCommand() == CommandList.LOGIN) {
+                                login = command.getLogin();
+                                password = command.getPassword();
+                                this.connectionCheck();
+                            } else if (this.connectionCheck()) {
+                                command.setLoginPassword(login, password);
                                 manager.send(command);
                                 ServerMessage message = manager.recive();
                                 if (message != null) {
@@ -55,6 +63,7 @@ public class ClientWorker {
                         }
                     } catch (NullPointerException e) {
                         System.out.println("NullPointerException! Скорее всего неверно указана дата при создании объекта.");
+                        e.printStackTrace();
                     }
                 }
                 System.out.print("//: ");
@@ -69,10 +78,15 @@ public class ClientWorker {
         datagramChannel.connect(socketAddress);
         datagramChannel.disconnect();
         datagramChannel.socket().setSoTimeout(1000);
-        manager.send(new Command(CommandList.CHECK, "Привет"));
+        Command command = new Command(CommandList.LOGIN, "Привет");
+        command.setLoginPassword(login, password);
+        manager.send(command);
         ServerMessage recive = manager.recive();
         if (recive != null) {
             System.out.println(recive.getMessage());
+            if (recive.getLogin() == false) {
+                return true;
+            }
             if (recive.getMessage().equals("Good connect. Hello from server!")) {
                 return true;
             } else {
