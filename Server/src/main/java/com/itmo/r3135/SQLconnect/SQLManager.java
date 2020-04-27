@@ -2,6 +2,7 @@ package com.itmo.r3135.SQLconnect;
 
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.World.Color;
+import com.itmo.r3135.World.UnitOfMeasure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,20 +50,47 @@ public class SQLManager {
     public boolean initTables() {
         try {
             Statement statement = connection.createStatement();
-            statement.execute("create table if not exists products " +
-                    "(id serial primary key not null , name text, x float,y double precision," +
-                    "creationDate timestamp,price double precision, partNumber text, manufactureCost float, unitOfMeasure text," +
-                    "ownerName text, ownerBirthday timestamp,ownerEyeColor text,ownerHairColor text, user_id integer)"
-            );
-
-//            Color[] colors = {Color.BLACK, Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
-//            statement.execute("create table if not exists colors(id int primary key generated always as identity ,name text unique)");
-//            for (Color color : colors)
-//                statement.execute("insert ignore into colors(name) values('" + color + "') on duplicate ");
-
+            //Таблица данных пользователей
             statement.execute("create table if not exists users (" +
                     "id serial primary key not null, name text, email text unique, password_hash bytea)"
             );
+            //таблица с color
+            statement.execute("CREATE TABLE if not exists colors " +
+                    "(Id int primary key generated always as  Identity ,Name varchar(20) NOT NULL UNIQUE )");
+            Color[] colors = {Color.BLACK, Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
+            try {
+                for (Color color : colors)
+                    statement.execute("insert into colors(name) values('" + color + "') ");
+            } catch (SQLException ignore) {//пока не знаю, как избежать ошибок дубликата, пожтому так.
+            }
+
+            //кривая таблица Person(owner)
+            statement.execute("create table if not exists owners " +
+                    "(id serial primary key not null, ownerName text, ownerBirthday timestamp," +
+                    "ownerEyeColor_id int,ownerHairColor_id int," +
+                    " foreign key (ownerEyeColor_id) references colors(id)," +
+                    "foreign key (ownerHairColor_id) references colors(id))");
+            //таблица с unitOfMeasure
+            statement.execute("CREATE TABLE if not exists unitOfMeasures " +
+                    "(Id int primary key generated always as  Identity ,color varchar(20) NOT NULL UNIQUE )");
+            UnitOfMeasure[] unitOfMeasures =
+                    {UnitOfMeasure.GRAMS, UnitOfMeasure.LITERS, UnitOfMeasure.MILLIGRAMS, UnitOfMeasure.PCS};
+            try {
+                for (UnitOfMeasure unitOfMeasure : unitOfMeasures)
+                    statement.execute("insert into unitOfMeasures(name) values('" + unitOfMeasure + "') ");
+            } catch (SQLException ignore) {//пока не знаю, как избежать ошибок дубликата, пожтому так.
+            }
+            //кривая таблица Product
+            statement.execute("create table if not exists products " +
+                    "(id serial primary key not null , name text, x float,y double precision," +
+                    "creationDate timestamp,price double precision, partNumber text," +
+                    "manufactureCost float, unitOfMeasure_id  int,user_id integer," +
+                    " foreign key (unitOfMeasure_id) references unitofmeasures(id)," +
+                    "foreign key (id) references owners(id)," +
+                    "foreign key (user_id) references users(id))"
+            );
+
+
             return true;
         } catch (SQLException e) {
             logger.fatal("Error in tables initialisation.");
