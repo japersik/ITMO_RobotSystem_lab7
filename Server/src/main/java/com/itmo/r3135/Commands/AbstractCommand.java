@@ -5,6 +5,8 @@ import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 
+import java.sql.SQLException;
+
 public abstract class AbstractCommand {
     protected Collection collection;
     protected Mediator serverWorker;

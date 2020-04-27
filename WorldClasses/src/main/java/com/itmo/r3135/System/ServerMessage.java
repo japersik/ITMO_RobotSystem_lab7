@@ -8,13 +8,25 @@ import java.util.ArrayList;
 public class ServerMessage implements Serializable {
     private String message;
     private ArrayList<Product> products;
+    private Boolean login;
+
+    {
+        login = true;
+    }
 
     public ServerMessage(String message) {
         this.message = message;
     }
+
     public ServerMessage(String message, ArrayList<Product>products){
         this.message = message;
         this.products = products;
+
+    }
+
+    public ServerMessage(String message, Boolean login){
+        this.message = message;
+        this.login = login;
     }
 
     public ArrayList<Product> getProducts() {
@@ -25,5 +37,11 @@ public class ServerMessage implements Serializable {
         return message;
     }
 
+    public Boolean getLogin() {
+        return login;
+    }
 
+    public void setLogin(Boolean login) {
+        this.login = login;
+    }
 }

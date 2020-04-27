@@ -2,10 +2,14 @@ package com.itmo.r3135.Commands;
 
 import com.itmo.r3135.Collection;
 import com.itmo.r3135.Mediator;
+import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Product;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -17,14 +21,21 @@ public class AddCommand extends AbstractCommand {
         super(collection, serverWorker);
     }
 
+
     @Override
     public ServerMessage activate(Command command) {
         HashSet<Product> products = this.collection.getProducts();
         Product addProduct = command.getProduct();
         addProduct.setCreationDate(java.time.LocalDateTime.now());
         addProduct.setId(uniqueoIdGeneration(products));
+        try (Statement statement = collection.getSqlManager().getConnection().createStatement()) {
+            statement.execute("INSERT INTO products (name, x, y, price, partnumber, manafucturecost)" +
+                    "VALUES (Сталин, 15, 10, 2, 321, 555);");
+        } catch (SQLException e){
+            return new ServerMessage("Потеряно соединение с базой данных");
+        }
+
         if (addProduct.checkNull()) {
-//                System.out.println("Элемент не удовлетворяет требованиям коллекции");
             return new ServerMessage(Product.printRequest());
         } else if (products.add(addProduct)) {
             collection.getDateChange();
@@ -50,5 +61,4 @@ public class AddCommand extends AbstractCommand {
             }
         }
     }
-
 }
