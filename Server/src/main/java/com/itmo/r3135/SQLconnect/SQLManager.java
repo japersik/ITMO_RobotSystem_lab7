@@ -42,8 +42,9 @@ public class SQLManager {
             );
             //таблица с color
             statement.execute("CREATE TABLE if not exists colors " +
-                    "(Id int primary key generated always as Identity ,Name varchar(20) NOT NULL UNIQUE )");
+                    "(Id serial primary key not null ,name varchar(20) NOT NULL UNIQUE )");
             Color[] colors = {Color.BLACK, Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW};
+
             try {
                 for (Color color : colors)
                     statement.execute("insert into colors(name) values('" + color + "') ");
@@ -58,7 +59,7 @@ public class SQLManager {
                     "foreign key (ownerHairColor_id) references colors(id))");
             //таблица с unitOfMeasure
             statement.execute("CREATE TABLE if not exists unitOfMeasures " +
-                    "(Id int primary key generated always as  Identity ,unitname varchar(20) NOT NULL UNIQUE )");
+                    "(Id serial primary key not null ,unitname varchar(20) NOT NULL UNIQUE )");
             UnitOfMeasure[] unitOfMeasures =
                     {UnitOfMeasure.GRAMS, UnitOfMeasure.LITERS, UnitOfMeasure.MILLIGRAMS, UnitOfMeasure.PCS};
             try {
@@ -79,6 +80,7 @@ public class SQLManager {
             return true;
         } catch (SQLException e) {
             logger.fatal("Error in tables initialisation.");
+            e.printStackTrace();
             return false;
         }
     }
