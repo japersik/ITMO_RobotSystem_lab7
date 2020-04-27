@@ -8,6 +8,7 @@ import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Product;
 
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ public class AddIfMinCommand extends AbstractCommand {
                     collection.getDateChange();
                 } else return new ServerMessage("Элемент не минимальный!");
             } else return new ServerMessage("Коллекция пуста, минимальный элемент отсутствует.");
-        } catch (JsonSyntaxException ex) {
+        } catch (JsonSyntaxException | SQLException ex) {
             return new ServerMessage("Возникла ошибка синтаксиса Json. Элемент не был добавлен");
         }
         return null;

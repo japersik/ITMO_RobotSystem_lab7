@@ -48,7 +48,7 @@ public class ClientWorker {
                                 password = command.getPassword();
                                 this.connectionCheck();
                             } else if (this.connectionCheck()) {
-                                command.setLoginPassword(login, password);
+                                if (command.getCommand() != CommandList.REG) command.setLoginPassword(login, password);
                                 manager.send(command);
                                 ServerMessage message = manager.recive();
                                 if (message != null) {

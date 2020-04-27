@@ -8,12 +8,16 @@ import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.postgresql.util.PSQLException;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -174,7 +178,9 @@ public class ServerWorker implements Mediator {
                     processing(new Command(CommandList.EXIT));
                 }
             }
-        } catch (Exception e){e.printStackTrace();}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void datagrammWork() {
@@ -225,14 +231,38 @@ public class ServerWorker implements Mediator {
     public ServerMessage processing(Command command) {
 //впихнуть проверку авторизации
         if (command.getPassword() == null & command.getLogin() == null) {
-           return new ServerMessage("Good connect. Please write your's login and password!", false);
+            return new ServerMessage("Good connect. Please write your's login and password!", false);
         }
-        if (command.getCommand() == CommandList.LOGIN) {
-            return new ServerMessage("Good connect. Hello from server!");
+        try {
+            if (command.getCommand() == CommandList.LOGIN) {
+                PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+                        "select * from users where email = ? and password_hash = ?"
+                );
+                statement.setString(1, command.getLogin());
+                statement.setBytes(2, command.getPassword().getBytes());
+                ResultSet resultSet = statement.executeQuery();
+                if (!resultSet.next()) return new ServerMessage("Incorrect login or password!", false);
+                else return new ServerMessage("Good connect. Hello from server!");
+            }
+            if (command.getCommand() == CommandList.REG) {
+                PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+                        "insert into users (email, password_hash) values (?, ?)"
+                );
+                statement.setString(1, command.getLogin());
+                statement.setBytes(2, command.getPassword().getBytes());
+                try {
+                    statement.execute();
+                } catch (SQLException e) {
+                    logger.error("Попытка добавления по существующему ключу");
+                    return new ServerMessage("Такой пользователь уже существует!");
+                }
+                if (statement.execute()) return new ServerMessage("Successful registration!");
+                else return new ServerMessage("Error registration!");
+            }
+        } catch (SQLException e) {
+            logger.error("Бда, бда SQLException");
         }
-        if (command.getCommand() == CommandList.REG) {
 
-        }
 
         try {
             switch (command.getCommand()) {
