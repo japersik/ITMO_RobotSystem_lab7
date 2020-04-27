@@ -11,6 +11,35 @@ public class Command implements Serializable {
     private Product product;
     private String string;
     private int intValue;
+    private String login;
+    private String password;
+
+    {
+        login = null;
+        password = null;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setLoginPassword(String login ,String password) {
+        this.login = login;
+        this.password = password;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
 
     public Command(CommandList command) {
         this.command = command;

@@ -135,7 +135,7 @@ public class ServerWorker implements Mediator {
         sender = new Sender(socket);
         reader = new Reader(socket);
         logger.info("Load collection.");
-        loadCollectionCommand.activate(new Command(CommandList.LOAD));
+        //loadCollectionCommand.activate(new Command(CommandList.LOAD));
         logger.info("Server started on port " + port + ".");
         Thread keyBoard = new Thread(() -> keyBoardWork());
         Thread datagramm = new Thread(() -> datagrammWork());
@@ -223,6 +223,15 @@ public class ServerWorker implements Mediator {
     @Override
     public ServerMessage processing(Command command) {
 //впихнуть проверку авторизации
+        if (command.getPassword() == null & command.getLogin() == null) {
+           return new ServerMessage("Good connect. Please write your's login and password!", false);
+        }
+        if (command.getCommand() == CommandList.LOGIN) {
+            return new ServerMessage("Good connect. Hello from server!");
+        }
+        if (command.getCommand() == CommandList.REG) {
+
+        }
 
         try {
             switch (command.getCommand()) {
@@ -268,7 +277,5 @@ public class ServerWorker implements Mediator {
             logger.error("Bad number in command!!!");
             return new ServerMessage("Ошибка записи числа в команде.");
         }
-
-
     }
 }

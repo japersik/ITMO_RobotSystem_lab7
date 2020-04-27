@@ -27,6 +27,13 @@ public class StringCommandManager {
         try {
             try {
                 switch (trimCommand[0]) {
+                    case "login":
+                        command = new Command(CommandList.LOGIN);
+                        command.setLoginPassword(trimCommand[1].split(" ",2)[0],trimCommand[1].split(" ",2)[1]);
+                        break;
+                    case "reg":
+                        command = new Command(CommandList.REG);
+                        break;
                     case "":
                         System.out.println("Команда отсутствует");
                         command = null;

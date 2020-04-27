@@ -20,7 +20,10 @@ public enum CommandList implements Serializable {
     PRINT_FIELD_DESCENDING_PRICE("print_field_descending_price"),
     CHECK("check_connection"),
     SAVE("save"),
+    LOGIN("login"),
+    REG("reg"),
     EXIT("exit");
+
 
     private CommandList(String toText) {
         this.toText = toText;

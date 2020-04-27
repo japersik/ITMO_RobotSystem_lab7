@@ -17,6 +17,7 @@ public class ServerMain {
     private final static String propFileName = "config.properties";
     private final static String defPropFileName = "config.properties";
 
+
     public static void main(String[] args) throws IOException {
         logger.info("The program started.");
         File propFile = new File(propFileName);
