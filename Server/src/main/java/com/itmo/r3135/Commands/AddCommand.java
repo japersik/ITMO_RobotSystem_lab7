@@ -25,15 +25,7 @@ public class AddCommand extends AbstractCommand {
 
     @Override
     public ServerMessage activate(Command command) {
-        int userId = 0;
-        try {
-            PreparedStatement s = collection.getSqlManager().getConnection()
-                    .prepareStatement("select id from users where email = ?");
-            s.setString(1, command.getLogin());
-            ResultSet resultSet = s.executeQuery();
-            if (resultSet.next()) userId = resultSet.getInt("id");
-        } catch (SQLException ignore) {
-        }
+        int userId = collection.getSqlManager().getUserId(command.getLogin());
         if (userId == 0) return new ServerMessage("Ошибка авторизации!");
         collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
@@ -59,7 +51,7 @@ public class AddCommand extends AbstractCommand {
     }
 
 
-    public int addProductSQL(Product product, int userId) {
+    private int addProductSQL(Product product, int userId) {
         int id = -1;
         int idOwner = addOwnerSQL(product.getOwner());
         if (idOwner != -1)

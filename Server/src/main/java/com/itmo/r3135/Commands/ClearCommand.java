@@ -4,9 +4,10 @@ import com.itmo.r3135.Collection;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
-import com.itmo.r3135.World.Product;
 
-import java.util.HashSet;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * Класс обработки комадны clear
@@ -21,11 +22,29 @@ public class ClearCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        int userId = collection.getSqlManager().getUserId(command.getLogin());
+        if (userId == -1) return new ServerMessage("Ошибка авторизации!");
         collection.getLock().writeLock().lock();
-        HashSet<Product> products = collection.getProducts();
-        products.clear();
+        try {
+            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+                    "delete from products where user_id = ? returning id"
+            );
+            statement.setInt(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+            System.out.println(resultSet.getFetchSize());
+            PreparedStatement statement2 = collection.getSqlManager().getConnection().prepareStatement(
+                    "delete from owners where user_id = ? returning id"
+            );
+            statement2.setArray(1, resultSet.getArray("id"));
+            ResultSet resultSet2 = statement2.executeQuery();
+
+            while (resultSet.next())
+                System.out.println(resultSet.getInt("id"));
+        } catch (SQLException e) {
+            return new ServerMessage("Ошибка поиска объектов пользователя в базе.");
+        }
         collection.getLock().writeLock().unlock();
-        return new ServerMessage("Коллекция очищена.");
+        return new ServerMessage("Ваши объекты удалены.");
 
     }
 }

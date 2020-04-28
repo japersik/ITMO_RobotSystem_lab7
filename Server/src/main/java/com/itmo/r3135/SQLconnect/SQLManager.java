@@ -1,12 +1,12 @@
 package com.itmo.r3135.SQLconnect;
 
 import com.itmo.r3135.System.Command;
-import com.itmo.r3135.World.*;
+import com.itmo.r3135.World.Color;
+import com.itmo.r3135.World.UnitOfMeasure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
-import java.time.ZoneOffset;
 
 public class SQLManager {
     static final Logger logger = LogManager.getLogger("SQLManager");
@@ -85,6 +85,20 @@ public class SQLManager {
         }
     }
 
+    public int getUserId(String loginName) {
+        int userId = -1;
+        try {
+            PreparedStatement s = connection
+                    .prepareStatement("select id from users where (email = ? or username =?)");
+            s.setString(1, loginName);
+            s.setString(2, loginName);
+            ResultSet resultSet = s.executeQuery();
+            if (resultSet.next()) userId = resultSet.getInt("id");
+            System.out.println(userId);
+        } catch (SQLException ignore) {
+        }
+        return userId;
+    }
 
     public boolean checkCommandUser(Command command) {
         return true;
