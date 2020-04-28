@@ -92,8 +92,8 @@ public class ClientWorker {
         manager.send(command);
         ServerMessage recive = manager.recive();
         if (recive != null) {
-            System.out.println(recive.getMessage());
             if (recive.getLogin() == false) {
+                System.out.println("You aren't login");
                 return true;
             }
             if (recive.getMessage().equals("Good connect. Hello from server!")) {

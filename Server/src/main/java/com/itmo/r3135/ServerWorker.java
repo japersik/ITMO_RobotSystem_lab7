@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 public class ServerWorker implements Mediator {
     static final Logger logger = LogManager.getLogger("ServerWorker");
@@ -215,6 +216,7 @@ public class ServerWorker implements Mediator {
         }
         try {
             if (command.getCommand() == CommandList.LOGIN) {
+                if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!",false);
                 PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
                         "select * from users where email = ? and password_hash = ?"
                 );
@@ -225,11 +227,13 @@ public class ServerWorker implements Mediator {
                 else return new ServerMessage("Good connect. Hello from server!");
             }
             if (command.getCommand() == CommandList.REG) {
+                if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!",false);
                 PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
-                        "insert into users (email, password_hash) values (?, ?)"
+                        "insert into users (email, password_hash, username) values (?, ?, ?)"
                 );
                 statement.setString(1, command.getLogin());
                 statement.setBytes(2, command.getPassword().getBytes());
+                statement.setString(3, emailParse(command.getLogin()));
                 try {
                     statement.execute();
                 } catch (SQLException e) {
@@ -283,5 +287,20 @@ public class ServerWorker implements Mediator {
             logger.error("Bad number in command!!!");
             return new ServerMessage("Ошибка записи числа в команде.");
         }
+    }
+
+    private String emailParse(String email) {
+        String username = email.split("@")[0];
+        return username;
+    }
+
+    private Boolean checkEmail(String email){
+        try {
+            String[] login = email.split("@");
+            if (login.length != 2) return false;
+            String[] address = login[1].split("\\.");
+            if (address.length != 2) return false;
+        } catch (Exception e){}
+        return true;
     }
 }
