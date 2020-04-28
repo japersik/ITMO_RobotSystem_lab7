@@ -89,7 +89,8 @@ public class SpamerWorker {
                     if (!product.checkNull()) break;
                 }
                 command = new Command(typeCommand, product);
-                command.setLoginPassword("daniil.marukh@gmail.com", sha384("arduinoonelove"));
+                //                command.setLoginPassword("daniil.marukh@gmail.com", sha384("arduinoonelove"));
+                command.setLoginPassword("spamer", sha384("123"));
             } else continue;
             manager.send(command);
             Thread.sleep(1);

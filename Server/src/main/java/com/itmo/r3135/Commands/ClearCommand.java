@@ -6,6 +6,8 @@ import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Product;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.HashSet;
 
 /**
@@ -26,6 +28,5 @@ public class ClearCommand extends AbstractCommand {
         products.clear();
         collection.getLock().writeLock().unlock();
         return new ServerMessage("Коллекция очищена.");
-
     }
 }
