@@ -1,7 +1,7 @@
 package com.itmo.r3135.Commands;
 
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
  * Класс обработки комадны remove_greater
  */
 public class RemoveGreaterCommand extends AbstractCommand {
-    public RemoveGreaterCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public RemoveGreaterCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     /**
@@ -27,11 +27,11 @@ public class RemoveGreaterCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
-        int userId = collection.getSqlManager().getUserId(command.getLogin());
+        int userId = dataManager.getSqlManager().getUserId(command.getLogin());
         if (userId == -1) return new ServerMessage("Ошибка авторизации!");
 
         try {
-            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+            PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
                     "delete from products where user_id = ? and price > ? returning products.id"
             );
             statement.setInt(1, userId);
@@ -40,14 +40,14 @@ public class RemoveGreaterCommand extends AbstractCommand {
             ArrayList<Integer> ids = new ArrayList<>();
             while (resultSet.next())
                 ids.add(resultSet.getInt("id"));
-            collection.getLock().writeLock().lock();
-            HashSet<Product> products = collection.getProducts();
+            dataManager.getLock().writeLock().lock();
+            HashSet<Product> products = dataManager.getProducts();
             products.removeAll((products.parallelStream().filter(product -> ids.indexOf(product.getId()) != -1)
                     .collect(Collectors.toCollection(HashSet::new))));
-            collection.getLock().writeLock().unlock();
+            dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Все элеменды больше " + command.getProduct().getPrice() + "удалены.");
         } catch (SQLException e) {
-            collection.getLock().writeLock().unlock();
+            dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Ошибка поиска объектов пользователя в базе.");
         }
     }

@@ -1,6 +1,6 @@
 package com.itmo.r3135.Commands;
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
@@ -18,21 +18,21 @@ import java.util.HashSet;
  * Класс обработки комадны add
  */
 public class AddCommand extends AbstractCommand {
-    public AddCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public AddCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
 
     @Override
     public ServerMessage activate(Command command) {
-        int userId = collection.getSqlManager().getUserId(command.getLogin());
+        int userId = dataManager.getSqlManager().getUserId(command.getLogin());
         if (userId == 0) return new ServerMessage("Ошибка авторизации!");
-        collection.getLock().writeLock().lock();
-        HashSet<Product> products = collection.getProducts();
+        dataManager.getLock().writeLock().lock();
+        HashSet<Product> products = dataManager.getProducts();
         Product addProduct = command.getProduct();
         addProduct.setCreationDate(java.time.LocalDateTime.now());
         if (addProduct.checkNull()) {
-            collection.getLock().writeLock().unlock();
+            dataManager.getLock().writeLock().unlock();
             return new ServerMessage(Product.printRequest());
         } else {
             int id = addObjSql(addProduct, userId);
@@ -40,11 +40,11 @@ public class AddCommand extends AbstractCommand {
             addProduct.setId(id);
             if (id == -1) return new ServerMessage("Ошибка добавления элеемнта в базу данных");
             else if (products.add(addProduct)) {
-                collection.updateDateChange();
-                collection.getLock().writeLock().unlock();
+                dataManager.updateDateChange();
+                dataManager.getLock().writeLock().unlock();
                 return new ServerMessage("Элемент успешно добавлен.");
             } else {
-                collection.getLock().writeLock().unlock();
+                dataManager.getLock().writeLock().unlock();
                 return new ServerMessage("Ошибка добавления элеемнта в коллекцию. Но. В базу он добавлени" +
                         "Сообщите обэном случае в техническую поддержку.('info')");
             }
@@ -58,7 +58,7 @@ public class AddCommand extends AbstractCommand {
     private int addProductSQL(Product product, int userId) {
         int id = -1;
         try {
-            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+            PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
                     "insert into products" +
                             "(name, x, y, creationdate, price, partnumber, manufacturecost, unitofmeasure_id, user_id) " +
                             "values (?,?,?,?,?,?,?,(select id from unitofmeasures where unitname = ?),?) returning id"
@@ -87,7 +87,7 @@ public class AddCommand extends AbstractCommand {
     private int addOwnerSQL(Person owner, int id) {
         int idOwner = -1;
         try {
-            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+            PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
                     "insert into owners" +
                             "(id,ownername, ownerbirthday, ownereyecolor_id, ownerhaircolor_id) " +
                             "values (?,?, ?, (select id from colors where name = ?), (select id from colors where name = ?)) returning id"

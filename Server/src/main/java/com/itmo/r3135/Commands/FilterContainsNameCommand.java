@@ -1,6 +1,6 @@
 package com.itmo.r3135.Commands;
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
  * Класс обработки комадны filter_contains_name
  */
 public class FilterContainsNameCommand extends AbstractCommand {
-    public FilterContainsNameCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public FilterContainsNameCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     /**
@@ -23,23 +23,23 @@ public class FilterContainsNameCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
-        collection.getLock().readLock().lock();
-        HashSet<Product> products = collection.getProducts();
+        dataManager.getLock().readLock().lock();
+        HashSet<Product> products = dataManager.getProducts();
         if (products.size() > 0) {
             if (!command.getString().isEmpty() && command.getString() != null) {
                 ArrayList<Product> productsList = new ArrayList<>(
                         products.stream().filter(product -> product.getName()
                                 .contains(command.getString())).collect(Collectors.toCollection(ArrayList::new)));
-                collection.getLock().readLock().unlock();
+                dataManager.getLock().readLock().unlock();
                 long findProdukts = products.parallelStream()
                         .filter(product -> product.getName().contains(command.getString())).count();
                 return new ServerMessage("Всего найдено " + findProdukts + " элементов.", productsList);
             } else {
-                collection.getLock().readLock().unlock();
+                dataManager.getLock().readLock().unlock();
                 return new ServerMessage("Ошибка ввода имени.");
             }
         } else {
-            collection.getLock().readLock().unlock();
+            dataManager.getLock().readLock().unlock();
             return new ServerMessage("Коллекция пуста.");
         }
     }

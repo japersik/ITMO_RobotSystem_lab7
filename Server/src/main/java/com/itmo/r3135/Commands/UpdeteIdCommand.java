@@ -1,7 +1,7 @@
 package com.itmo.r3135.Commands;
 
 import com.google.gson.JsonSyntaxException;
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
@@ -15,8 +15,8 @@ import java.util.HashSet;
  * Класс обработки комадны update_id
  */
 public class UpdeteIdCommand extends AbstractCommand {
-    public UpdeteIdCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public UpdeteIdCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     /**
@@ -24,10 +24,10 @@ public class UpdeteIdCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
-        int userId = collection.getSqlManager().getUserId(command.getLogin());
+        int userId = dataManager.getSqlManager().getUserId(command.getLogin());
         if (userId == -1) return new ServerMessage("Ошибка авторизации!");
-        collection.getLock().writeLock().lock();
-        HashSet<Product> products = collection.getProducts();
+        dataManager.getLock().writeLock().lock();
+        HashSet<Product> products = dataManager.getProducts();
         try {
             int id = command.getIntValue();
             Product newProduct = command.getProduct();
@@ -38,7 +38,7 @@ public class UpdeteIdCommand extends AbstractCommand {
                 serverWorker.processing(new Command(CommandList.REMOVE_BY_ID, id));
                 if (startSize - products.size() == 1)
                     if (products.add(newProduct)) {
-                        collection.uptadeDateChange();
+                        dataManager.uptadeDateChange();
                         return new ServerMessage("Элемент успешно обновлён.");
                     } else return new ServerMessage("При замене элементов что-то пошло не так");
             }
