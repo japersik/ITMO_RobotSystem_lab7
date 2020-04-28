@@ -51,12 +51,7 @@ public class SQLManager {
             } catch (SQLException ignore) {//пока не знаю, как избежать ошибок дубликата, пожтому так.
             }
 
-            //кривая таблица Person(owner)
-            statement.execute("create table if not exists owners " +
-                    "(id serial primary key not null, ownerName text, ownerBirthday timestamp," +
-                    "ownerEyeColor_id int,ownerHairColor_id int," +
-                    "foreign key (ownerEyeColor_id) references colors(id)," +
-                    "foreign key (ownerHairColor_id) references colors(id))");
+
             //таблица с unitOfMeasure
             statement.execute("CREATE TABLE if not exists unitOfMeasures " +
                     "(Id serial primary key not null ,unitname varchar(20) NOT NULL UNIQUE )");
@@ -73,8 +68,15 @@ public class SQLManager {
                     "creationDate timestamp,price double precision, partNumber text," +
                     "manufactureCost float, unitOfMeasure_id  int,user_id integer," +
                     "foreign key (unitOfMeasure_id) references unitofmeasures(id)," +
-                    "foreign key (id) references owners(id)," +
                     "foreign key (user_id) references users(id))"
+            );
+            //кривая таблица Person(owner)
+            statement.execute("create table if not exists owners " +
+                    "(id serial primary key not null, ownerName text, ownerBirthday timestamp," +
+                    "ownerEyeColor_id int,ownerHairColor_id int," +
+                    "foreign key (ownerEyeColor_id) references colors(id)," +
+                    "foreign key (ownerHairColor_id) references colors(id),"+
+                    "foreign key (id) references products(id) on delete cascade)"
             );
 
             return true;

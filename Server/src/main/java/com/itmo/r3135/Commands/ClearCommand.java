@@ -5,9 +5,14 @@ import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 
+import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны clear
@@ -31,13 +36,10 @@ public class ClearCommand extends AbstractCommand {
             );
             statement.setInt(1, userId);
             ResultSet resultSet = statement.executeQuery();
-            System.out.println(resultSet.getFetchSize());
-            PreparedStatement statement2 = collection.getSqlManager().getConnection().prepareStatement(
-                    "delete from owners where user_id = ? returning id"
-            );
-            statement2.setArray(1, resultSet.getArray("id"));
-            ResultSet resultSet2 = statement2.executeQuery();
+           // ArrayList<Integer> ids = (ArrayList<Integer>) Arrays.asList((Integer[]) resultSet.getArray("id");
 
+            //products.removeAll((products.parallelStream().filter(product -> product.getId() == id)
+             //       .collect(Collectors.toCollection(HashSet::new))));
             while (resultSet.next())
                 System.out.println(resultSet.getInt("id"));
         } catch (SQLException e) {
