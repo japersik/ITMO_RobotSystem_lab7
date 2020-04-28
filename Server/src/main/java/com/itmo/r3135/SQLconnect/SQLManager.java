@@ -1,12 +1,12 @@
 package com.itmo.r3135.SQLconnect;
 
 import com.itmo.r3135.System.Command;
-import com.itmo.r3135.World.*;
+import com.itmo.r3135.World.Color;
+import com.itmo.r3135.World.UnitOfMeasure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
-import java.time.ZoneOffset;
 
 public class SQLManager {
     static final Logger logger = LogManager.getLogger("SQLManager");
@@ -51,12 +51,7 @@ public class SQLManager {
             } catch (SQLException ignore) {//пока не знаю, как избежать ошибок дубликата, пожтому так.
             }
 
-            //кривая таблица Person(owner)
-            statement.execute("create table if not exists owners " +
-                    "(id serial primary key not null, ownerName text, ownerBirthday timestamp," +
-                    "ownerEyeColor_id int,ownerHairColor_id int," +
-                    "foreign key (ownerEyeColor_id) references colors(id)," +
-                    "foreign key (ownerHairColor_id) references colors(id))");
+
             //таблица с unitOfMeasure
             statement.execute("CREATE TABLE if not exists unitOfMeasures " +
                     "(Id serial primary key not null ,unitname varchar(20) NOT NULL UNIQUE )");
@@ -73,8 +68,15 @@ public class SQLManager {
                     "creationDate timestamp,price double precision, partNumber text," +
                     "manufactureCost float, unitOfMeasure_id  int,user_id integer," +
                     "foreign key (unitOfMeasure_id) references unitofmeasures(id)," +
-                    "foreign key (id) references owners(id)," +
                     "foreign key (user_id) references users(id))"
+            );
+            //кривая таблица Person(owner)
+            statement.execute("create table if not exists owners " +
+                    "(id serial primary key not null, ownerName text, ownerBirthday timestamp," +
+                    "ownerEyeColor_id int,ownerHairColor_id int," +
+                    "foreign key (ownerEyeColor_id) references colors(id)," +
+                    "foreign key (ownerHairColor_id) references colors(id),"+
+                    "foreign key (id) references products(id) on delete cascade)"
             );
 
             return true;
@@ -85,6 +87,20 @@ public class SQLManager {
         }
     }
 
+    public int getUserId(String loginName) {
+        int userId = -1;
+        try {
+            PreparedStatement s = connection
+                    .prepareStatement("select id from users where (email = ? or username =?)");
+            s.setString(1, loginName);
+            s.setString(2, loginName);
+            ResultSet resultSet = s.executeQuery();
+            if (resultSet.next()) userId = resultSet.getInt("id");
+            System.out.println(userId);
+        } catch (SQLException ignore) {
+        }
+        return userId;
+    }
 
     public boolean checkCommandUser(Command command) {
         return true;

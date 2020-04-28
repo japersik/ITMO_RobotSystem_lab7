@@ -30,11 +30,12 @@ public class AddIfMinCommand extends AbstractCommand {
             if (products.size() != 0) {
                 Product addProduct = command.getProduct();
                 Product minElem = products.stream().min(Product::compareTo).get();
+                collection.getLock().writeLock().unlock();
                 if (addProduct.compareTo(minElem) < 0) {
-                    serverWorker.processing(new Command(CommandList.ADD, addProduct));
-                    collection.getDateChange();
+                    Command addCommand = new Command(CommandList.ADD, addProduct);
+                    command.setLoginPassword(command.getLogin(),command.getPassword());
+                    return serverWorker.processing(addCommand);
                 } else {
-                    collection.getLock().writeLock().unlock();
                     return new ServerMessage("Элемент не минимальный!");
                 }
             } else {
@@ -45,7 +46,5 @@ public class AddIfMinCommand extends AbstractCommand {
             collection.getLock().writeLock().unlock();
             return new ServerMessage("Возникла ошибка синтаксиса Json. Элемент не был добавлен");
         }
-        collection.getLock().writeLock().unlock();
-        return null;
     }
 }

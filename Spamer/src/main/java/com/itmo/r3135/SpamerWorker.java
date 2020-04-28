@@ -89,8 +89,7 @@ public class SpamerWorker {
                     if (!product.checkNull()) break;
                 }
                 command = new Command(typeCommand, product);
-                //                command.setLoginPassword("daniil.marukh@gmail.com", sha384("arduinoonelove"));
-                command.setLoginPassword("spamer", sha384("123"));
+                command.setLoginPassword("123@123.com", sha384("1234"));
             } else continue;
             manager.send(command);
             Thread.sleep(1);
@@ -108,7 +107,7 @@ public class SpamerWorker {
         datagramChannel.socket().setSoTimeout(1000);
         Date sendDate = new Date();
         Command command = new Command(CommandList.LOGIN, "Привет");
-        command.setLoginPassword("daniil.marukh@gmail.com", sha384("arduinoonelove"));
+        command.setLoginPassword("123@123.com", sha384("1234"));
         manager.send(command);
         ServerMessage recive = manager.recive();
         if (recive != null) {
