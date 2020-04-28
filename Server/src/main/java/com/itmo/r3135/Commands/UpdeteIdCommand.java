@@ -24,6 +24,9 @@ public class UpdeteIdCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        int userId = collection.getSqlManager().getUserId(command.getLogin());
+        if (userId == -1) return new ServerMessage("Ошибка авторизации!");
+        collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
         try {
             int id = command.getIntValue();
@@ -35,7 +38,6 @@ public class UpdeteIdCommand extends AbstractCommand {
                 serverWorker.processing(new Command(CommandList.REMOVE_BY_ID, id));
                 if (startSize - products.size() == 1)
                     if (products.add(newProduct)) {
-                        collection.getDateChange();
                         collection.uptadeDateChange();
                         return new ServerMessage("Элемент успешно обновлён.");
                     } else return new ServerMessage("При замене элементов что-то пошло не так");

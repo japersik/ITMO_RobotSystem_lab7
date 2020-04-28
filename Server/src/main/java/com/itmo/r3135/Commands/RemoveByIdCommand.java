@@ -23,7 +23,10 @@ public class RemoveByIdCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
-        collection.getLock().writeLock().unlock();
+        int userId = collection.getSqlManager().getUserId(command.getLogin());
+        if (userId == -1) return new ServerMessage("Ошибка авторизации!");
+
+        collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
         int startSize = products.size();
         if (products.size() > 0) {
