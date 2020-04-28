@@ -25,15 +25,7 @@ public class AddCommand extends AbstractCommand {
 
     @Override
     public ServerMessage activate(Command command) {
-        int userId = 0;
-        try {
-            PreparedStatement s = collection.getSqlManager().getConnection()
-                    .prepareStatement("select id from users where email = ?");
-            s.setString(1, command.getLogin());
-            ResultSet resultSet = s.executeQuery();
-            if (resultSet.next()) userId = resultSet.getInt("id");
-        } catch (SQLException ignore) {
-        }
+        int userId = collection.getSqlManager().getUserId(command.getLogin());
         if (userId == 0) return new ServerMessage("Ошибка авторизации!");
         collection.getLock().writeLock().lock();
         HashSet<Product> products = collection.getProducts();
@@ -43,7 +35,8 @@ public class AddCommand extends AbstractCommand {
             collection.getLock().writeLock().unlock();
             return new ServerMessage(Product.printRequest());
         } else {
-            int id = addProductSQL(addProduct, userId);
+            int id = addObjSql(addProduct, userId);
+            addProduct.setUserName(command.getLogin());
             if (id == -1) return new ServerMessage("Ошибка добавления элеемнта в базу данных");
             else if (products.add(addProduct)) {
                 collection.updateDateChange();
@@ -51,64 +44,64 @@ public class AddCommand extends AbstractCommand {
                 return new ServerMessage("Элемент успешно добавлен.");
             } else {
                 collection.getLock().writeLock().unlock();
-                return new ServerMessage("Ошибка добавления элеемнта в коллекцию. НО. В базу он добавлени" +
+                return new ServerMessage("Ошибка добавления элеемнта в коллекцию. Но. В базу он добавлени" +
                         "Сообщите обэном случае в техническую поддержку.('info')");
             }
         }
-
     }
 
-
-    public int addProductSQL(Product product, int userId) {
-        int id = -1;
-        int idOwner = addOwnerSQL(product.getOwner());
-        if (idOwner != -1)
-            try {
-                PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
-                        "insert into products" +
-                                "(id,name, x, y, creationdate, price, partnumber, manufacturecost, unitofmeasure_id, user_id) " +
-                                "values (?,?,?,?,?,?,?,?,(select id from unitofmeasures where unitname = ?),?) returning id"
-                );
-                statement.setInt(1, idOwner);
-                statement.setString(2, product.getName());
-                statement.setFloat(3, product.getCoordinates().getX());
-                statement.setDouble(4, product.getCoordinates().getY());
-                statement.setTimestamp(5, new Timestamp(product.getCreationDate().toEpochSecond(ZoneOffset.UTC) * 1000));
-                statement.setDouble(6, product.getPrice());
-                statement.setString(7, product.getPartNumber());
-                statement.setDouble(8, product.getManufactureCost());
-                statement.setString(9, product.getUnitOfMeasure().toString());
-                statement.setInt(10, userId);
-
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    id = resultSet.getInt("id");
-                    System.out.println("Added Product id: " + id);
-                }
-            } catch (SQLException lal) {
-                lal.printStackTrace();
-            }
-        return id;
+    private int addObjSql(Product product, int userId) {
+        return addOwnerSQL(product.getOwner(), addProductSQL(product, userId));
     }
 
-    private int addOwnerSQL(Person owner) {
+    private int addProductSQL(Product product, int userId) {
         int id = -1;
         try {
             PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
-                    "insert into owners" +
-                            "(ownername, ownerbirthday, ownereyecolor_id, ownerhaircolor_id) " +
-                            "values (?, ?, (select id from colors where name = ?), (select id from colors where name = ?)) returning id"
+                    "insert into products" +
+                            "(name, x, y, creationdate, price, partnumber, manufacturecost, unitofmeasure_id, user_id) " +
+                            "values (?,?,?,?,?,?,?,(select id from unitofmeasures where unitname = ?),?) returning id"
             );
-            statement.setString(1, owner.getName());
-            statement.setTimestamp(2, new Timestamp(owner.getBirthday().toEpochSecond(ZoneOffset.UTC) * 1000));
-            statement.setString(3, owner.getEyeColor().toString());
-            statement.setString(4, owner.getHairColor().toString());
+            statement.setString(1, product.getName());
+            statement.setFloat(2, product.getCoordinates().getX());
+            statement.setDouble(3, product.getCoordinates().getY());
+            statement.setTimestamp(4, new Timestamp(product.getCreationDate().toEpochSecond(ZoneOffset.UTC) * 1000));
+            statement.setDouble(5, product.getPrice());
+            statement.setString(6, product.getPartNumber());
+            statement.setDouble(7, product.getManufactureCost());
+            statement.setString(8, product.getUnitOfMeasure().toString());
+            statement.setInt(9, userId);
+
             ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) id = resultSet.getInt("id");
-            System.out.println(id);
+            if (resultSet.next()) {
+                id = resultSet.getInt("id");
+                System.out.println("Added Product id: " + id);
+            }
         } catch (SQLException lal) {
             lal.printStackTrace();
         }
         return id;
+    }
+
+    private int addOwnerSQL(Person owner, int id) {
+        int idOwner = -1;
+        try {
+            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+                    "insert into owners" +
+                            "(id,ownername, ownerbirthday, ownereyecolor_id, ownerhaircolor_id) " +
+                            "values (?,?, ?, (select id from colors where name = ?), (select id from colors where name = ?)) returning id"
+            );
+            statement.setInt(1, id);
+            statement.setString(2, owner.getName());
+            statement.setTimestamp(3, new Timestamp(owner.getBirthday().toEpochSecond(ZoneOffset.UTC) * 1000));
+            statement.setString(4, owner.getEyeColor().toString());
+            statement.setString(5, owner.getHairColor().toString());
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) idOwner = resultSet.getInt("id");
+            System.out.println(id);
+        } catch (SQLException lal) {
+            lal.printStackTrace();
+        }
+        return idOwner;
     }
 }
