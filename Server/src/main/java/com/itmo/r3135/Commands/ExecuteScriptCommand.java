@@ -25,16 +25,16 @@ public class ExecuteScriptCommand extends AbstractCommand {
         collection.getLock().writeLock().lock();
         HashSet<Product> oldProducts = new HashSet<>(collection.getProducts());
         try {
+            collection.getLock().writeLock().unlock();
             for (Command executeCommand : command.getEcexuteCommands()) {
                 executeCommand.setLoginPassword(command.getLogin(), command.getPassword());
                 serverWorker.processing(executeCommand);
             }
-            collection.updateDateChange();
-            collection.getLock().readLock().unlock();
             return new ServerMessage("Скрикт был выполнен.");
         } catch (Exception e) {
+            collection.getLock().writeLock().lock();
             collection.setProducts(oldProducts);
-            collection.getLock().readLock().unlock();
+            collection.getLock().writeLock().unlock();
             return new ServerMessage("Скрикт не был выполнен. Коллекция не изменилась. Если проблема посторится, обратитесь к в тех. поддержку.");
         }
     }
