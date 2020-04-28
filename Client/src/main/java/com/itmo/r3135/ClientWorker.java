@@ -93,7 +93,7 @@ public class ClientWorker {
         ServerMessage recive = manager.recive();
         if (recive != null) {
             if (recive.getLogin() == false) {
-                System.out.println("You aren't login");
+                System.out.println(recive.getMessage());
                 return true;
             }
             if (recive.getMessage().equals("Good connect. Hello from server!")) {
@@ -102,10 +102,13 @@ public class ClientWorker {
                 System.out.println("Неверное подтверждение от сервера!");
                 return false;
             }
-        } else return false;
+        } else {
+            System.out.println("Соединение не установлено.");
+            return false;
+        }
     }
 
-    public String sha384(String password){
+    public String sha384(String password) {
         if (password == null) return password;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-384");
@@ -116,8 +119,7 @@ public class ClientWorker {
                 hashtext = "0" + hashtext;
             }
             return hashtext;
-        }
-        catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             return password;
         }
     }

@@ -3,6 +3,7 @@ package com.itmo.r3135;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.System.Tools.DatagramTrimer;
+import org.w3c.dom.ls.LSOutput;
 
 import java.io.*;
 import java.net.SocketAddress;
@@ -41,12 +42,13 @@ public class SendReciveManager {
         int packetCounter = 0;
         byte[] b;
         do {
+            System.out.println("Пакет № " +(packetCounter+1));
             b = new byte[65535];
             ByteBuffer buffer = ByteBuffer.wrap(b);
             SocketAddress from = null;
             Thread.sleep(5);
             for (int i = 0; i < 1000; i++) {
-                if (i % 200 == 0) System.out.println("Попытка считать ответ № " + (i / 200 + 1));
+                if (i % 200 == 0) System.out.println("Попытка принять ответ № " + (i / 200 + 1));
                 from = datagramChannel.receive(buffer);
                 if (from != null) break;
                 Thread.sleep(10);

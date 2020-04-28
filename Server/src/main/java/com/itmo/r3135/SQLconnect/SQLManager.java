@@ -38,7 +38,7 @@ public class SQLManager {
             Statement statement = connection.createStatement();
             //Таблица данных пользователей
             statement.execute("create table if not exists users (" +
-                    "id serial primary key not null, username text, email text unique, password_hash bytea)"
+                    "id serial primary key not null, username text unique , email text unique, password_hash bytea)"
             );
             //таблица с color
             statement.execute("CREATE TABLE if not exists colors " +

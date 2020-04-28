@@ -1,6 +1,5 @@
 package com.itmo.r3135;
 
-import com.google.gson.Gson;
 import com.itmo.r3135.Commands.*;
 import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
@@ -8,9 +7,7 @@ import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.postgresql.util.PSQLException;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
@@ -21,22 +18,16 @@ import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Stream;
 
 public class ServerWorker implements Mediator {
     static final Logger logger = LogManager.getLogger("ServerWorker");
-    //   private static final Semaphore SEMAPHORE = new Semaphore(1, true);
     private int port;
     private DatagramSocket socket;
-    private Gson gson;
     private Collection collection;
     private Sender sender;
     private Reader reader;
 
     private SQLManager sqlManager;
-    //Не знаю, зачем нам вообще многопоточное чтение запросов, ибо у нас всё равно udp
-    //ExecutorService readPool = Executors.newFixedThreadPool(3);
-    //пока один поток на исполнение, т.к. команды НЕпотокобезопасны для тестов
     ExecutorService executePool = Executors.newFixedThreadPool(8);
     ExecutorService sendPool = Executors.newFixedThreadPool(8);
 
@@ -57,7 +48,6 @@ public class ServerWorker implements Mediator {
     private AbstractCommand infoCommand;
 
     {
-        gson = new Gson();
         collection = new Collection();
         addCommand = new AddCommand(collection, this);
         showCommand = new ShowCommand(collection, this);
@@ -95,40 +85,6 @@ public class ServerWorker implements Mediator {
         return true;
     }
 
-    public ServerWorker(int port, String fileName) {
-        this.port = port;
-        logger.info("Server port: " + port);
-        if (fileName == null) {
-            logger.warn("File path " + fileName + " is wrong!!!");
-            System.exit(1);
-        }
-        File jsonPath = new File(fileName);
-        if (jsonPath.exists()) {
-            collection.setJsonFile(jsonPath);
-            logger.info("Path " + fileName + " discovered.");
-        } else {
-            logger.warn("Path " + fileName + " does not exist.");
-            try {
-                logger.info("Create a new file.");
-                jsonPath.createNewFile();
-                collection.setJsonFile(jsonPath);
-            } catch (IOException e) {
-                logger.fatal("Error creating file!!!");
-                System.exit(666);
-            }
-        }
-        if (!jsonPath.isFile()) {
-            logger.warn("Path " + fileName + " does not contain a file name.");
-            System.exit(1);
-        } else {
-            logger.info("File " + fileName + " discovered.");
-        }
-        if (!(fileName.lastIndexOf(".json") == fileName.length() - 5)) {
-            logger.warn("Non .json file format.");
-            System.exit(1);
-        }
-        logger.info("File is " + jsonPath.getAbsolutePath());
-    }
 
     public void startWork() throws SocketException {
         logger.info("Server start.");
@@ -153,22 +109,17 @@ public class ServerWorker implements Mediator {
                 System.out.print("//: ");
                 if (input.hasNextLine()) {
                     String inputString = input.nextLine();
-//                    SEMAPHORE.acquire();
                     switch (inputString) {
                         case "exit":
                             logger.info("Command 'exit' from console.");
-//                            processing(new Command(CommandList.EXIT));
                             System.exit(666);
                             break;
                         default:
                             logger.error("Bad command.");
                             logger.info("Available commands:,'exit'.");
                     }
-//                    SEMAPHORE.release();
                 } else {
-//                    processing(new Command(CommandList.SAVE));
                     System.exit(666);
-//                    processing(new Command(CommandList.EXIT));
                 }
             }
         } catch (Exception e) {
@@ -180,14 +131,14 @@ public class ServerWorker implements Mediator {
         while (true) {
             try {
                 Command command = reader.nextCommand();
-                logger.info("New command " + command.getCommand() + " from " + reader.getInput().getSocketAddress() + ".");
+                logger.info("New command " + command.getCommand() +
+                        " from " + reader.getInput().getSocketAddress() + ". User: "+command.getLogin()+".");
                 threadProcessing(command, reader.getInput().getSocketAddress());
             } catch (IOException e) {
                 logger.error("Error in receive-send of command!!!" + e);
             }
         }
     }
-
 
     private void threadProcessing(Command command, SocketAddress inputAddress) {
         executePool.execute(() -> {
@@ -210,24 +161,10 @@ public class ServerWorker implements Mediator {
 
     @Override
     public ServerMessage processing(Command command) {
-//впихнуть проверку авторизации
-        if (command.getPassword() == null & command.getLogin() == null) {
-            return new ServerMessage("Good connect. Please write your's login and password!", false);
-        }
-        try {
-            if (command.getCommand() == CommandList.LOGIN) {
-                if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!",false);
-                PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
-                        "select * from users where email = ? and password_hash = ?"
-                );
-                statement.setString(1, command.getLogin());
-                statement.setBytes(2, command.getPassword().getBytes());
-                ResultSet resultSet = statement.executeQuery();
-                if (!resultSet.next()) return new ServerMessage("Incorrect login or password!", false);
-                else return new ServerMessage("Good connect. Hello from server!");
-            }
-            if (command.getCommand() == CommandList.REG) {
-                if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!",false);
+//Приверка, что команда - регистрация.
+        if (command.getCommand() == CommandList.REG) {
+            try {
+                if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!", false);
                 PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
                         "insert into users (email, password_hash, username) values (?, ?, ?)"
                 );
@@ -238,55 +175,67 @@ public class ServerWorker implements Mediator {
                     statement.execute();
                 } catch (SQLException e) {
                     logger.error("Попытка добавления по существующему ключу");
-                    return new ServerMessage("Такой пользователь уже существует!");
+                    return new ServerMessage("Пользователь с именем" + emailParse(command.getLogin()) + " уже существует!");
                 }
                 return new ServerMessage("Successful registration!");
-            }
-        } catch (SQLException e) {
-            logger.error("Бда, бда SQLException");
-        }
 
-
-        try {
-            switch (command.getCommand()) {
-                case CHECK:
-                    return new ServerMessage("Good connect. Hello from server!");
-                case HELP:
-                    return helpCommand.activate(command);
-                case INFO:
-                    return infoCommand.activate(command);
-                case SHOW:
-                    return showCommand.activate(command);
-                case ADD:
-                    return addCommand.activate(command);
-                case UPDATE:
-                    return updeteIdCommand.activate(command);
-                case REMOVE_BY_ID:
-                    return removeByIdCommand.activate(command);
-                case CLEAR:
-                    return clearCommand.activate(command);
-                case EXECUTE_SCRIPT:
-                    return executeScriptCommand.activate(command);
-                case ADD_IF_MIN:
-                    return addIfMinCommand.activate(command);
-                case REMOVE_GREATER:
-                    return removeGreaterCommand.activate(command);
-                case REMOVE_LOWER:
-                    return removeLowerCommand.activate(command);
-                case GROUP_COUNTING_BY_COORDINATES:
-                    return groupCountingByCoordinatesCommand.activate(command);
-                case FILTER_CONTAINS_NAME:
-                    return filterContainsNameCommand.activate(command);
-                case PRINT_FIELD_DESCENDING_PRICE:
-                    return printFieldDescendingPriceCommand.activate(command);
-                default:
-                    logger.warn("Bad command!");
-                    return new ServerMessage("Битая команда!");
+            } catch (SQLException e) {
+                logger.error("Бда, бда SQLException");
+                return new ServerMessage("Ошибка регистрации");
             }
-        } catch (NumberFormatException ex) {
-            logger.error("Bad number in command!!!");
-            return new ServerMessage("Ошибка записи числа в команде.");
         }
+        //Если это первое сообщение от пользователя
+        else if (command.getPassword() == null & command.getLogin() == null) {
+            return new ServerMessage("Good connect. Please write your's login and password!\n " +
+                    "Command login: 'login [email/name] [password]'\n" +
+                    "Command registration: 'reg [email] [password]'", false);
+        } else
+//если не первое
+            if (!checkAccount(command)) {
+                return new ServerMessage("Incorrect login or password!\n" +
+                        "Command login: 'login [email/name] [password]'\n" +
+                        "Command registration: 'reg [email] [password]'\n", false);
+            } else
+                try {
+                    switch (command.getCommand()) {
+                        case LOGIN:
+                            return new ServerMessage("Good connect. Hello from server!");
+                        case HELP:
+                            return helpCommand.activate(command);
+                        case INFO:
+                            return infoCommand.activate(command);
+                        case SHOW:
+                            return showCommand.activate(command);
+                        case ADD:
+                            return addCommand.activate(command);
+                        case UPDATE:
+                            return updeteIdCommand.activate(command);
+                        case REMOVE_BY_ID:
+                            return removeByIdCommand.activate(command);
+                        case CLEAR:
+                            return clearCommand.activate(command);
+                        case EXECUTE_SCRIPT:
+                            return executeScriptCommand.activate(command);
+                        case ADD_IF_MIN:
+                            return addIfMinCommand.activate(command);
+                        case REMOVE_GREATER:
+                            return removeGreaterCommand.activate(command);
+                        case REMOVE_LOWER:
+                            return removeLowerCommand.activate(command);
+                        case GROUP_COUNTING_BY_COORDINATES:
+                            return groupCountingByCoordinatesCommand.activate(command);
+                        case FILTER_CONTAINS_NAME:
+                            return filterContainsNameCommand.activate(command);
+                        case PRINT_FIELD_DESCENDING_PRICE:
+                            return printFieldDescendingPriceCommand.activate(command);
+                        default:
+                            logger.warn("Bad command!");
+                            return new ServerMessage("Битая команда!");
+                    }
+                } catch (NumberFormatException ex) {
+                    logger.error("Bad number in command!!!");
+                    return new ServerMessage("Ошибка записи числа в команде.");
+                }
     }
 
     private String emailParse(String email) {
@@ -294,13 +243,30 @@ public class ServerWorker implements Mediator {
         return username;
     }
 
-    private Boolean checkEmail(String email){
+    private boolean checkAccount(Command command) {
+        try {
+            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+                    "select * from users where (email = ? or username =?) and password_hash = ?"
+            );
+            statement.setString(1, command.getLogin());
+            statement.setString(2, command.getLogin());
+            statement.setBytes(3, command.getPassword().getBytes());
+            ResultSet resultSet = statement.executeQuery();
+            if (!resultSet.next()) return false;
+            else return true;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    private Boolean checkEmail(String email) {
         try {
             String[] login = email.split("@");
             if (login.length != 2) return false;
             String[] address = login[1].split("\\.");
             if (address.length != 2) return false;
-        } catch (Exception e){}
+        } catch (Exception e) {
+        }
         return true;
     }
 }
