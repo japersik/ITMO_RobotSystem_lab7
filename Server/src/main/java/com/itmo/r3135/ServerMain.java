@@ -19,6 +19,7 @@ public class ServerMain {
 
 
     public static void main(String[] args) throws IOException {
+
         logger.info("The program started.");
         File propFile = new File(propFileName);
 
