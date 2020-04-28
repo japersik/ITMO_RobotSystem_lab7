@@ -1,7 +1,7 @@
 
 package com.itmo.r3135.Commands;
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
  */
 public class PrintFieldDescendingPriceCommand extends AbstractCommand {
 
-    public PrintFieldDescendingPriceCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public PrintFieldDescendingPriceCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     /**
@@ -25,15 +25,15 @@ public class PrintFieldDescendingPriceCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
-        collection.getLock().readLock().lock();
-        HashSet<Product> products = collection.getProducts();
+        dataManager.getLock().readLock().lock();
+        HashSet<Product> products = dataManager.getProducts();
         if (!products.isEmpty()) {
             ArrayList<Product> list = products.stream().sorted((o1, o2) -> (int) ((o2.getPrice() - o1.getPrice()) * 100000)).collect(Collectors.toCollection(ArrayList::new));
-            collection.getLock().readLock().unlock();
+            dataManager.getLock().readLock().unlock();
             return new ServerMessage("Сортировка в порядке убывания цены:", list);
 
         } else {
-            collection.getLock().readLock().unlock();
+            dataManager.getLock().readLock().unlock();
             return new ServerMessage("Коллекция пуста.");
         }
     }

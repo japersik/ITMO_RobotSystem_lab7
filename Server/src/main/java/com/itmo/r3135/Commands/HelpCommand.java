@@ -1,6 +1,6 @@
 package com.itmo.r3135.Commands;
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
@@ -14,8 +14,8 @@ public class HelpCommand extends AbstractCommand {
     private final String format = "%-30s%5s%n";
     ;
 
-    public HelpCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public HelpCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     /**
