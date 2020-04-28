@@ -1,6 +1,7 @@
 package com.itmo.r3135;
 
 import com.itmo.r3135.Commands.*;
+import com.itmo.r3135.SQLconnect.MailManager;
 import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
@@ -23,7 +24,7 @@ public class ServerWorker implements Mediator {
     static final Logger logger = LogManager.getLogger("ServerWorker");
     private int port;
     private DatagramSocket socket;
-    private Collection collection;
+    private DataManager dataManager;
     private Sender sender;
     private Reader reader;
 
@@ -48,22 +49,22 @@ public class ServerWorker implements Mediator {
     private AbstractCommand infoCommand;
 
     {
-        collection = new Collection();
-        addCommand = new AddCommand(collection, this);
-        showCommand = new ShowCommand(collection, this);
-        updeteIdCommand = new UpdeteIdCommand(collection, this);
-        helpCommand = new HelpCommand(collection, this);
-        removeByIdCommand = new RemoveByIdCommand(collection, this);
-        groupCountingByCoordinatesCommand = new GroupCountingByCoordinatesCommand(collection, this);
-        addIfMinCommand = new AddIfMinCommand(collection, this);
-        loadCollectionCommand = new LoadCollectionCommand(collection, this);
-        clearCommand = new ClearCommand(collection, this);
-        printFieldDescendingPriceCommand = new PrintFieldDescendingPriceCommand(collection, this);
-        filterContainsNameCommand = new FilterContainsNameCommand(collection, this);
-        removeLowerCommand = new RemoveLowerCommand(collection, this);
-        removeGreaterCommand = new RemoveGreaterCommand(collection, this);
-        executeScriptCommand = new ExecuteScriptCommand(collection, this);
-        infoCommand = new InfoCommand(collection, this);
+        dataManager = new DataManager();
+        addCommand = new AddCommand(dataManager, this);
+        showCommand = new ShowCommand(dataManager, this);
+        updeteIdCommand = new UpdeteIdCommand(dataManager, this);
+        helpCommand = new HelpCommand(dataManager, this);
+        removeByIdCommand = new RemoveByIdCommand(dataManager, this);
+        groupCountingByCoordinatesCommand = new GroupCountingByCoordinatesCommand(dataManager, this);
+        addIfMinCommand = new AddIfMinCommand(dataManager, this);
+        loadCollectionCommand = new LoadCollectionCommand(dataManager, this);
+        clearCommand = new ClearCommand(dataManager, this);
+        printFieldDescendingPriceCommand = new PrintFieldDescendingPriceCommand(dataManager, this);
+        filterContainsNameCommand = new FilterContainsNameCommand(dataManager, this);
+        removeLowerCommand = new RemoveLowerCommand(dataManager, this);
+        removeGreaterCommand = new RemoveGreaterCommand(dataManager, this);
+        executeScriptCommand = new ExecuteScriptCommand(dataManager, this);
+        infoCommand = new InfoCommand(dataManager, this);
     }
 
     public ServerWorker(int port) {
@@ -77,12 +78,19 @@ public class ServerWorker implements Mediator {
         sqlManager = new SQLManager();
         boolean isConnect = sqlManager.initDatabaseConnection(host, port, dataBaseName, user, password);
         boolean isInit = sqlManager.initTables();
-        collection.setSqlManager(sqlManager);
+        dataManager.setSqlManager(sqlManager);
         return isConnect && isInit;
     }
 
-    public boolean mailInit() {
-        return true;
+    public boolean mailInit(String mailUser, String mailPassword, String mailHost, int mailPort, boolean smtpAuth) {
+        MailManager mailManager = new MailManager(mailUser, mailPassword, mailHost, mailPort, smtpAuth);
+
+        boolean init = mailManager.initMail();
+        
+//                init = init &&
+        mailManager.sendMail("daniil.marukh@gmail.com");//адрес для теста отправки
+        dataManager.setMailManager(mailManager);
+        return init;
     }
 
 
@@ -132,7 +140,7 @@ public class ServerWorker implements Mediator {
             try {
                 Command command = reader.nextCommand();
                 logger.info("New command " + command.getCommand() +
-                        " from " + reader.getInput().getSocketAddress() + ". User: "+command.getLogin()+".");
+                        " from " + reader.getInput().getSocketAddress() + ". User: " + command.getLogin() + ".");
                 threadProcessing(command, reader.getInput().getSocketAddress());
             } catch (IOException e) {
                 logger.error("Error in receive-send of command!!!" + e);
@@ -165,7 +173,7 @@ public class ServerWorker implements Mediator {
         if (command.getCommand() == CommandList.REG) {
             try {
                 if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!", false);
-                PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+                PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
                         "insert into users (email, password_hash, username) values (?, ?, ?)"
                 );
                 statement.setString(1, command.getLogin());
@@ -245,7 +253,7 @@ public class ServerWorker implements Mediator {
 
     private boolean checkAccount(Command command) {
         try {
-            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+            PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
                     "select * from users where (email = ? or username =?) and password_hash = ?"
             );
             statement.setString(1, command.getLogin());

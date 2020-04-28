@@ -1,6 +1,6 @@
 package com.itmo.r3135.Commands;
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
@@ -17,17 +17,17 @@ import java.util.HashSet;
 public class LoadCollectionCommand extends AbstractCommand {
     static final Logger logger = LogManager.getLogger("Loader");
 
-    public LoadCollectionCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public LoadCollectionCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     @Override
     public ServerMessage activate(Command command) {
-        collection.getLock().writeLock().lock();
-        HashSet<Product> products = collection.getProducts();
+        dataManager.getLock().writeLock().lock();
+        HashSet<Product> products = dataManager.getProducts();
         try {
-            logger.info("Loading collection from database: " + collection.getSqlManager().getConnection().getCatalog());
-            PreparedStatement statement = collection.getSqlManager().getConnection().prepareStatement(
+            logger.info("Loading collection from database: " + dataManager.getSqlManager().getConnection().getCatalog());
+            PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
                     "select owners.id," +
                             "       products.name," +
                             "       products.x," +
@@ -68,12 +68,12 @@ public class LoadCollectionCommand extends AbstractCommand {
                 products.add(product);
             }
             logger.info("Collections successfully uploaded. Added " + products.size() + " items.");
-            collection.getLock().writeLock().unlock();
+            dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Good.");
         } catch (SQLException e) {
             logger.fatal("SQL reading error");
             e.printStackTrace();
-            collection.getLock().writeLock().unlock();
+            dataManager.getLock().writeLock().unlock();
             return null;
         }
     }

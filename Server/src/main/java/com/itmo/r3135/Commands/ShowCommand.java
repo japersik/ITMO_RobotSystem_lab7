@@ -1,13 +1,12 @@
 package com.itmo.r3135.Commands;
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Product;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 
 /**
  * Класс обработки комадны show
@@ -15,8 +14,8 @@ import java.util.Comparator;
 
 public class ShowCommand extends AbstractCommand {
 
-    public ShowCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public ShowCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     /**
@@ -24,9 +23,9 @@ public class ShowCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
-        collection.getLock().readLock().lock();
-        ArrayList<Product> products = new ArrayList<>(collection.getProducts());
-        collection.getLock().readLock().unlock();
+        dataManager.getLock().readLock().lock();
+        ArrayList<Product> products = new ArrayList<>(dataManager.getProducts());
+        dataManager.getLock().readLock().unlock();
         if (products.size() != 0) {
             return new ServerMessage("Список коллекции: ", products);
         } else return new ServerMessage("Коллекция пуста.");

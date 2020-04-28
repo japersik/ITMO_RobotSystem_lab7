@@ -1,6 +1,6 @@
 package com.itmo.r3135.Commands;
 
-import com.itmo.r3135.Collection;
+import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
@@ -14,8 +14,8 @@ public class RemoveByIdCommand extends AbstractCommand {
     /**
      * Класс обработки комадны remove_by_id
      */
-    public RemoveByIdCommand(Collection collection, Mediator serverWorker) {
-        super(collection, serverWorker);
+    public RemoveByIdCommand(DataManager dataManager, Mediator serverWorker) {
+        super(dataManager, serverWorker);
     }
 
     /**
@@ -23,25 +23,25 @@ public class RemoveByIdCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
-        int userId = collection.getSqlManager().getUserId(command.getLogin());
+        int userId = dataManager.getSqlManager().getUserId(command.getLogin());
         if (userId == -1) return new ServerMessage("Ошибка авторизации!");
 
-        collection.getLock().writeLock().lock();
-        HashSet<Product> products = collection.getProducts();
+        dataManager.getLock().writeLock().lock();
+        HashSet<Product> products = dataManager.getProducts();
         int startSize = products.size();
         if (products.size() > 0) {
             int id = command.getIntValue();
             products.removeAll((products.parallelStream().filter(product -> product.getId() == id)
                     .collect(Collectors.toCollection(HashSet::new))));
             if (startSize == products.size()) {
-                collection.getLock().writeLock().unlock();
+                dataManager.getLock().writeLock().unlock();
                 return new ServerMessage("Элемент с id " + id + " не существует.");
             }
-            collection.uptadeDateChange();
-            collection.getLock().writeLock().unlock();
+            dataManager.uptadeDateChange();
+            dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Элемент коллекции успешно удалён.");
         } else {
-            collection.getLock().writeLock().unlock();
+            dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Коллекция пуста.");
         }
     }

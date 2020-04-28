@@ -1,5 +1,6 @@
 package com.itmo.r3135;
 
+import com.itmo.r3135.SQLconnect.MailManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,19 +47,25 @@ public class ServerMain {
 
             int port = portFromString(properties.getProperty("port"));
             int dbPort = portFromString(properties.getProperty("db_port"));
-            if (port == -1 || dbPort == -1) System.exit(0);
+            int mailPort = portFromString(properties.getProperty("mail.smtp.port"));
+            if (port == -1 || dbPort == -1 || mailPort == -1) System.exit(0);
             String dbHost = properties.getProperty("db_host");
             String dbName = properties.getProperty("db_name");
             String dbUser = properties.getProperty("db_user");
             String dbPassword = properties.getProperty("db_password");
+            String mailUser = properties.getProperty("mail.username");
+            String mailPassword = properties.getProperty("mail.password");
+            String mailHost = properties.getProperty("mail.smtp.host");
+            boolean smtpAuth = Boolean.valueOf(properties.getProperty("mail.smtp.auth"));
 
             ServerWorker worker = new ServerWorker(port);
-            if (worker.SQLInit(dbHost, dbPort, dbName, dbUser, dbPassword) && worker.mailInit())
+            if (worker.SQLInit(dbHost, dbPort, dbName, dbUser, dbPassword) &&
+                    worker.mailInit(mailUser,mailPassword,mailHost,mailPort,smtpAuth))
                 try {
                     worker.startWork();
                 } catch (BindException e) {
                     logger.error("The port " + properties.getProperty("port") + " is busy.");
-                }
+                }else {logger.fatal("INITIALISATION ERROR!");}
         }
     }
 
