@@ -50,7 +50,7 @@ public class MailManager {
 
     public boolean sendMail(String eMail) {
         //session.setDebug(true);
-        //пока тестовый текст
+        //пока тестовый текст☺♂☺
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
@@ -102,7 +102,7 @@ public class MailManager {
                     "</table>\n" +
                     "<h1 style=\"text-align: center;\"><strong>&nbsp;Немножко старых мемасов</strong><img src=\"https://sun9-12.userapi.com/c850016/v850016901/12720e/InQbhg3GPGU.jpg\" width=\"1000\" height=\"623\" /></h1>\n" +
                     "<p><img src=\"https://sun9-7.userapi.com/c847021/v847021125/1a3055/uiyQ8Qvgb9g.jpg\" width=\"1000\" height=\"562\" /><img src=\"https://sun9-8.userapi.com/c850016/v850016901/127218/SERc5qdOTKk.jpg\" width=\"1000\" height=\"625\" /></p>\n" +
-                    "<p>&nbsp; &nbsp; &nbsp; &nbsp; Держите ещё: можете приколоть своих приятелей с помощью&nbsp;<a target=\"_blank\" rel=\"nofollow noopener\" href=\"https://geekprank.com/\">GeekPrank</a>.</p>";
+                    "<p>&nbsp; &nbsp; &nbsp; &nbsp; Держите ещё: можете приколоть своих приятелей с помощью&nbsp;<a target=\"_blank\" rel=\"nofollow noopener\" href=\"https://geekprank.com/\">GeekPrank</a>.</p>☺☺";
 
             message.setContent(text,"text/html");
             Transport.send(message);
