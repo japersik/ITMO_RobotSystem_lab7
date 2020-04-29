@@ -1,12 +1,12 @@
 package com.itmo.r3135.SQLconnect;
 
-import com.itmo.r3135.System.Command;
 import com.itmo.r3135.World.Color;
 import com.itmo.r3135.World.UnitOfMeasure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.*;
+import java.util.Random;
 
 public class SQLManager {
     static final Logger logger = LogManager.getLogger("SQLManager");
@@ -32,7 +32,6 @@ public class SQLManager {
 
     }
 
-    // Создаёт таблицы, если их ещё нет
     public boolean initTables() {
         try {
             Statement statement = connection.createStatement();
@@ -40,6 +39,22 @@ public class SQLManager {
             statement.execute("create table if not exists users (" +
                     "id serial primary key not null, username text unique , email text unique, password_hash bytea)"
             );
+            //таблица со статусами пользователя
+            statement.execute("CREATE TABLE if not exists statuses " +
+                    "(Id serial primary key not null ,name varchar(20) NOT NULL UNIQUE )");
+            String[] statusList = {"reg", "npass"};
+
+            try {
+                for (String status : statusList)
+                    statement.execute("insert into statuses(name) values('" + status + "') ");
+            } catch (SQLException ignore) {
+            }
+            statement.execute("create table if not exists userstatus (" +
+                    "id serial primary key not null, statusid int, code text," +
+                    "foreign key (id) references users(id) on delete cascade," +
+                    "foreign key (statusid) references statuses(id) on delete cascade)"
+            );
+
             //таблица с color
             statement.execute("CREATE TABLE if not exists colors " +
                     "(Id serial primary key not null ,name varchar(20) NOT NULL UNIQUE )");
@@ -50,7 +65,6 @@ public class SQLManager {
                     statement.execute("insert into colors(name) values('" + color + "') ");
             } catch (SQLException ignore) {//пока не знаю, как избежать ошибок дубликата, пожтому так.
             }
-
 
             //таблица с unitOfMeasure
             statement.execute("CREATE TABLE if not exists unitOfMeasures " +
@@ -75,7 +89,7 @@ public class SQLManager {
                     "(id serial primary key not null, ownerName text, ownerBirthday timestamp," +
                     "ownerEyeColor_id int,ownerHairColor_id int," +
                     "foreign key (ownerEyeColor_id) references colors(id)," +
-                    "foreign key (ownerHairColor_id) references colors(id),"+
+                    "foreign key (ownerHairColor_id) references colors(id)," +
                     "foreign key (id) references products(id) on delete cascade)"
             );
 
@@ -96,17 +110,87 @@ public class SQLManager {
             s.setString(2, loginName);
             ResultSet resultSet = s.executeQuery();
             if (resultSet.next()) userId = resultSet.getInt("id");
-            System.out.println(userId);
         } catch (SQLException ignore) {
         }
         return userId;
     }
 
-    public boolean checkCommandUser(Command command) {
-        return true;
+    public String userStatusReg(int userId) {
+        return setStatus(userId, "reg");
+    }
+
+    public String userStatusNewPass(int userId) {
+        return setStatus(userId, "npass");
+    }
+
+    private String setStatus(int userId, String status) {
+        try {
+            clearStatus(userId);
+            PreparedStatement statement2 = connection.prepareStatement("insert into userstatus(id,statusid,code) " +
+                    "values (?,(select id from statuses where name = ?),? )");
+            statement2.setInt(1, userId);
+            statement2.setString(2, status);
+            statement2.setString(3, randomString());
+            ResultSet resultSet = statement2.executeQuery();
+            if (resultSet.next()) return resultSet.getString("name");
+        } catch (SQLException e) {
+            return null;
+        }
+        return null;
+    }
+
+    public String getUserStatus(int id) {
+        try {
+            PreparedStatement s = connection
+                    .prepareStatement("select name from statuses where id = " +
+                            "( select statusid from userstatus where id = " + id + " )");
+            ResultSet resultSet = s.executeQuery();
+            if (resultSet.next()) return resultSet.getString("name");
+        } catch (SQLException ignore) {
+        }
+        return null;
+    }
+
+    public String getUserCode(int id) {
+        try {
+            PreparedStatement s = connection
+                    .prepareStatement("select code from userstatus where id =" + id);
+            ResultSet resultSet = s.executeQuery();
+            if (resultSet.next()) return resultSet.getString("code");
+        } catch (SQLException ignore) {
+        }
+        return null;
+    }
+
+    private static String randomString() {
+        char[] chs = "ZXCVBNMASDFGHJKLQWERTYUIOP1234567890zxcvbnmasdfghjklqwertyuiop".toCharArray();
+        String number = new String();
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            number = number + (chs[random.nextInt(chs.length)]);
+        }
+        return number;
     }
 
     public Connection getConnection() {
         return connection;
+    }
+
+    public boolean isReg(int uderId) {
+        return "reg".equals(getUserStatus(uderId));
+    }
+
+    public boolean clearStatus(int userId) {
+        try {
+            Statement statement = connection.createStatement();
+            statement.execute("delete from userstatus where id = " + userId);
+        } catch (SQLException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public boolean isNewPass(int uderId) {
+        return "npass".equals(getUserStatus(uderId));
     }
 }

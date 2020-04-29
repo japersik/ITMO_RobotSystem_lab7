@@ -72,7 +72,7 @@ public class MailManager {
         return true;
     }
 
-    public boolean sendMailHTML(String eMail, String login) {
+    public boolean sendMailHTML(String eMail, String login,String code) {
         String htmlText;
         StringBuilder result = new StringBuilder("");
         String htmlFileName = "emailTemplate.html";
@@ -86,6 +86,7 @@ public class MailManager {
             htmlText = result.toString();
             htmlText = htmlText.replace("insertLogin", login);
             htmlText = htmlText.replace("insertEmail", eMail);
+            htmlText = htmlText.replace("verificationCode", code);
 
         } catch (Exception e) {
             logger.error("Error in html file read!");

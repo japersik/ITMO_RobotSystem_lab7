@@ -30,6 +30,9 @@ public class StringCommandManager {
         try {
             try {
                 switch (trimCommand[0]) {
+                    case "code":
+                        command = new Command(CommandList.CODE, trimCommand[1]);
+                        break;
                     case "login":
                         command = new Command(CommandList.LOGIN);
                         command.setLoginPassword(trimCommand[1].split(" ",2)[0],trimCommand[1].split(" ",2)[1]);
