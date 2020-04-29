@@ -1,6 +1,5 @@
 package com.itmo.r3135;
 
-import com.itmo.r3135.SQLconnect.MailManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -40,7 +39,7 @@ public class ServerMain {
         Properties properties = new Properties();
 
         //Добавить проверку файла на пригодность
-        try (InputStream inputStream = new FileInputStream(propFileName);) {
+        try (InputStream inputStream = new FileInputStream(propFileName)) {
             logger.info("Loading setting from " + propFile.getAbsolutePath() + ".");
             properties.load(inputStream);
             logger.info("Config from file:" + properties.toString());
@@ -56,22 +55,27 @@ public class ServerMain {
             String mailUser = properties.getProperty("mail.username");
             String mailPassword = properties.getProperty("mail.password");
             String mailHost = properties.getProperty("mail.smtp.host");
-            boolean smtpAuth = Boolean.valueOf(properties.getProperty("mail.smtp.auth"));
+            boolean smtpAuth = Boolean.parseBoolean(properties.getProperty("mail.smtp.auth"));
 
             ServerWorker worker = new ServerWorker(port);
             if (worker.SQLInit(dbHost, dbPort, dbName, dbUser, dbPassword) &&
-                    worker.mailInit(mailUser,mailPassword,mailHost,mailPort,smtpAuth))
+                    worker.mailInit(mailUser, mailPassword, mailHost, mailPort, smtpAuth))
                 try {
                     worker.startWork();
                 } catch (BindException e) {
                     logger.error("The port " + properties.getProperty("port") + " is busy.");
-                }else {logger.fatal("INITIALISATION ERROR!");}
+                }
+            else {
+                logger.fatal("INITIALISATION ERROR!");
+            }
+        } catch (NullPointerException e) {
+            logger.fatal("Initialisation ERROR! Edit config file!");
         }
     }
 
     private static int portFromString(String stringPort) {
         try {
-            int port = Integer.valueOf(stringPort);
+            int port = Integer.parseInt(stringPort);
             if (port < 0 || port > 65535) {
                 logger.fatal("Wrong port!");
                 logger.fatal("Port is a number from 0 to 65535");

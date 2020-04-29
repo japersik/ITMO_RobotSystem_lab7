@@ -24,7 +24,7 @@ public class ClientMain {
                 try {
                     String[] trimString = inputString.trim().split(":", 2);
                     String addres = trimString[0];
-                    int port = Integer.valueOf(trimString[1]);
+                    int port = Integer.parseInt(trimString[1]);
                     if (port < 0 || port > 65535) {
                         System.out.println("Порт - число от 0 до 65535.");
                         continue;

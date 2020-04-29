@@ -47,12 +47,12 @@ public class MailManager {
             return false;
         }
         logger.info("Mail good connect!");
+
         return true;
     }
 
     public boolean sendMail(String eMail) {
-        //session.setDebug(true);
-        //пока тестовый текст
+
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
