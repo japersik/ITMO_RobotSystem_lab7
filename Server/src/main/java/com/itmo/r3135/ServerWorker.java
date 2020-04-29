@@ -88,7 +88,7 @@ public class ServerWorker implements Mediator {
         boolean init = mailManager.initMail();
         
 //                init = init &&
-        mailManager.sendMail("daniil.marukh@gmail.com");//адрес для теста отправки
+        mailManager.sendMailHTML("daniil.marukh@gmail.com","lalalla");//адрес для теста отправки
         dataManager.setMailManager(mailManager);
         return init;
     }
