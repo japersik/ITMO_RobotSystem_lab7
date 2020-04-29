@@ -86,9 +86,8 @@ public class ServerWorker implements Mediator {
         MailManager mailManager = new MailManager(mailUser, mailPassword, mailHost, mailPort, smtpAuth);
 
         boolean init = mailManager.initMail();
-
 //                init = init &&
-        mailManager.sendMail(mailUser);//адрес для теста отправки
+        //     mailManager.sendMail(mailUser);//адрес для теста отправки
         dataManager.setMailManager(mailManager);
         return init;
     }
@@ -169,23 +168,26 @@ public class ServerWorker implements Mediator {
 
     @Override
     public ServerMessage processing(Command command) {
-//Приверка, что команда - регистрация.
+        //Приверка, что команда - регистрация.
         if (command.getCommand() == CommandList.REG) {
             try {
                 if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!", false);
                 PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
-                        "insert into users (email, password_hash, username) values (?, ?, ?)"
+                        "insert into users (email, password_hash, username) values (?, ?, ?) "
                 );
                 statement.setString(1, command.getLogin());
                 statement.setBytes(2, command.getPassword().getBytes());
                 statement.setString(3, emailParse(command.getLogin()));
                 try {
                     statement.execute();
+                    dataManager.getSqlManager().userStatusReg(
+                            dataManager.getSqlManager().getUserId(command.getLogin()));
                 } catch (SQLException e) {
                     logger.error("Попытка добавления по существующему ключу");
                     return new ServerMessage("Пользователь с именем " + emailParse(command.getLogin()) + " уже существует!");
                 }
-                if (!dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()))) {
+                if (!dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()),
+                        dataManager.getSqlManager().getUserCode(dataManager.getSqlManager().getUserId(command.getLogin())))) {
                     logger.error("ERROR IN EMAIL SENDING TO " + command.getLogin());
                     return new ServerMessage("Successful registration!");
                 }
@@ -201,53 +203,62 @@ public class ServerWorker implements Mediator {
             return new ServerMessage("Good connect. Please write your's login and password!\n " +
                     "Command login: 'login [email/name] [password]'\n" +
                     "Command registration: 'reg [email] [password]'", false);
+        } else if (!checkAccount(command)) {
+            return new ServerMessage("Incorrect login or password!\n" +
+                    "Command login: 'login [email/name] [password]'\n" +
+                    "Command registration: 'reg [email] [password]'\n", false);
+        } else if (command.getCommand() == CommandList.CODE) {
+            if (command.getString().equals(dataManager.getSqlManager().getUserCode(
+                    dataManager.getSqlManager().getUserId(command.getLogin())))) {
+                dataManager.getSqlManager().clearStatus(
+                        dataManager.getSqlManager().getUserId(command.getLogin()));
+                return new ServerMessage("Подтверждение успешно!");
+            } else return new ServerMessage("Код неверный!");
+        } else if (command.getCommand() != CommandList.LOGIN && dataManager.getSqlManager().isReg(
+                dataManager.getSqlManager().getUserId(command.getLogin()))) {
+            return new ServerMessage("Аккаунт не подтверждён! Проведьте почту\n" +
+                    "Отправьте код подтвеждения командой 'code [код]' ");
         } else
-//если не первое
-            if (!checkAccount(command)) {
-                return new ServerMessage("Incorrect login or password!\n" +
-                        "Command login: 'login [email/name] [password]'\n" +
-                        "Command registration: 'reg [email] [password]'\n", false);
-            } else
-                try {
-                    switch (command.getCommand()) {
-                        case LOGIN:
-                            return new ServerMessage("Good connect. Hello from server!");
-                        case HELP:
-                            return helpCommand.activate(command);
-                        case INFO:
-                            return infoCommand.activate(command);
-                        case SHOW:
-                            return showCommand.activate(command);
-                        case ADD:
-                            return addCommand.activate(command);
-                        case UPDATE:
-                            return updeteIdCommand.activate(command);
-                        case REMOVE_BY_ID:
-                            return removeByIdCommand.activate(command);
-                        case CLEAR:
-                            return clearCommand.activate(command);
-                        case EXECUTE_SCRIPT:
-                            return executeScriptCommand.activate(command);
-                        case ADD_IF_MIN:
-                            return addIfMinCommand.activate(command);
-                        case REMOVE_GREATER:
-                            return removeGreaterCommand.activate(command);
-                        case REMOVE_LOWER:
-                            return removeLowerCommand.activate(command);
-                        case GROUP_COUNTING_BY_COORDINATES:
-                            return groupCountingByCoordinatesCommand.activate(command);
-                        case FILTER_CONTAINS_NAME:
-                            return filterContainsNameCommand.activate(command);
-                        case PRINT_FIELD_DESCENDING_PRICE:
-                            return printFieldDescendingPriceCommand.activate(command);
-                        default:
-                            logger.warn("Bad command!");
-                            return new ServerMessage("Битая команда!");
-                    }
-                } catch (NumberFormatException ex) {
-                    logger.error("Bad number in command!!!");
-                    return new ServerMessage("Ошибка записи числа в команде.");
+            try {
+                switch (command.getCommand()) {
+                    case LOGIN:
+                        return new ServerMessage("Good connect. Hello from server!");
+                    case HELP:
+                        return helpCommand.activate(command);
+                    case INFO:
+                        return infoCommand.activate(command);
+                    case SHOW:
+                        return showCommand.activate(command);
+                    case ADD:
+                        return addCommand.activate(command);
+                    case UPDATE:
+                        return updeteIdCommand.activate(command);
+                    case REMOVE_BY_ID:
+                        return removeByIdCommand.activate(command);
+                    case CLEAR:
+                        return clearCommand.activate(command);
+                    case EXECUTE_SCRIPT:
+                        return executeScriptCommand.activate(command);
+                    case ADD_IF_MIN:
+                        return addIfMinCommand.activate(command);
+                    case REMOVE_GREATER:
+                        return removeGreaterCommand.activate(command);
+                    case REMOVE_LOWER:
+                        return removeLowerCommand.activate(command);
+                    case GROUP_COUNTING_BY_COORDINATES:
+                        return groupCountingByCoordinatesCommand.activate(command);
+                    case FILTER_CONTAINS_NAME:
+                        return filterContainsNameCommand.activate(command);
+                    case PRINT_FIELD_DESCENDING_PRICE:
+                        return printFieldDescendingPriceCommand.activate(command);
+                    default:
+                        logger.warn("Bad command!");
+                        return new ServerMessage("Битая команда!");
                 }
+            } catch (NumberFormatException ex) {
+                logger.error("Bad number in command!!!");
+                return new ServerMessage("Ошибка записи числа в команде.");
+            }
     }
 
     private String emailParse(String email) {
