@@ -86,9 +86,9 @@ public class ServerWorker implements Mediator {
         MailManager mailManager = new MailManager(mailUser, mailPassword, mailHost, mailPort, smtpAuth);
 
         boolean init = mailManager.initMail();
-        
+
 //                init = init &&
-        mailManager.sendMailHTML("daniil.marukh@gmail.com","lalalla");//адрес для теста отправки
+        mailManager.sendMail(mailUser);//адрес для теста отправки
         dataManager.setMailManager(mailManager);
         return init;
     }
@@ -183,9 +183,13 @@ public class ServerWorker implements Mediator {
                     statement.execute();
                 } catch (SQLException e) {
                     logger.error("Попытка добавления по существующему ключу");
-                    return new ServerMessage("Пользователь с именем" + emailParse(command.getLogin()) + " уже существует!");
+                    return new ServerMessage("Пользователь с именем " + emailParse(command.getLogin()) + " уже существует!");
                 }
-                return new ServerMessage("Successful registration!");
+                if (!dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()))) {
+                    logger.error("ERROR IN EMAIL SENDING TO " + command.getLogin());
+                    return new ServerMessage("Successful registration!");
+                }
+                return new ServerMessage("Successful registration check your email :)");
 
             } catch (SQLException e) {
                 logger.error("Бда, бда SQLException");

@@ -84,6 +84,9 @@ public class MailManager {
 
             }
             htmlText = result.toString();
+            htmlText = htmlText.replace("insertLogin", login);
+            htmlText = htmlText.replace("insertEmail", eMail);
+
         } catch (Exception e) {
             logger.error("Error in html file read!");
             return false;
