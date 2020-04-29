@@ -44,8 +44,8 @@ public class SendReciveManager {
             ByteBuffer buffer = ByteBuffer.wrap(b);
             SocketAddress from = null;
             Thread.sleep(5);
-            for (int i = 0; i < 1000; i++) {
-                if (i % 200 == 0) System.out.print(".");
+            for (int i = 0; i < 2000; i++) {
+                if (i % 100 == 0) System.out.print(".");
                 from = datagramChannel.receive(buffer);
                 if (from != null) break;
                 Thread.sleep(10);
