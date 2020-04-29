@@ -19,10 +19,10 @@ public enum CommandList implements Serializable {
     FILTER_CONTAINS_NAME("filter_contains_name"),
     PRINT_FIELD_DESCENDING_PRICE("print_field_descending_price"),
     CHECK("check_connection"),
-    SAVE("save"),
+    CODE("code"),
     LOGIN("login"),
-    REG("reg"),
-    EXIT("exit");
+    REG("reg");
+
 
 
     private CommandList(String toText) {

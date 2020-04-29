@@ -47,13 +47,7 @@ public class ClientWorker {
                         commandString = commandReader.nextLine();
                         Command command = stringCommandManager.getCommandFromString(commandString);
                         if (command != null) {
-                            if (command.getCommand() == CommandList.LOGIN) {
-                                login = command.getLogin();
-                                password = sha384(command.getPassword());
-                                command.setPassword(password);
-                                this.connectionCheck();
-                                continue;
-                            } else if (command.getCommand() == CommandList.REG) {
+                            if (command.getCommand() == CommandList.REG || command.getCommand() == CommandList.LOGIN) {
                                 login = command.getLogin();
                                 password = sha384(command.getPassword());
                                 command.setPassword(password);
@@ -67,7 +61,7 @@ public class ClientWorker {
                                     System.out.println(message.getMessage());
                                 if (message.getProducts() != null)
                                     for (Product p : message.getProducts()) System.out.println(p);
-                            } else System.out.println("Ответ cервера некорректен");
+                            } else System.out.println("Ответ сервера некорректен");
                         } else {
                             System.out.println("Команда не была отправлена.");
                         }

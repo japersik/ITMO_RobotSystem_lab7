@@ -27,12 +27,10 @@ public class SendReciveManager {
             byte[] bytearray = byteArrayOutputStream.toByteArray();
             ByteBuffer buffer = ByteBuffer.wrap(bytearray);
             datagramChannel.send(buffer, socketAddress);
-            //  buffer.clear();
             objectOutputStream.close();
             System.out.println("Сообщение " + message.getCommand() + " отправлено");
         } catch (IOException e) {
             System.out.println("IOException во время отправки");
-            System.out.println(e);
         }
     }
 
@@ -69,9 +67,6 @@ public class SendReciveManager {
         for (byte[] message : messageList) {
             fullMessage = DatagramTrimer.connectByte(fullMessage, message);
         }
-//        for (int i = 0; i < fullMessage.length; i++) {
-//            System.out.println(fullMessage[i]);
-//        }// для отладки
         return fromSerial(fullMessage);
 
     }
@@ -86,7 +81,6 @@ public class SendReciveManager {
             return serverMessage;
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Ошибка десериализации.");
-            System.out.println(e);
             return null;
         }
     }
