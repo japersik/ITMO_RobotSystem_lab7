@@ -50,23 +50,23 @@ public class ClientWorker {
                             if (command.getCommand() == CommandList.LOGIN) {
                                 login = command.getLogin();
                                 password = sha384(command.getPassword());
+                                System.out.println(password);
                                 this.connectionCheck();
-                            } else if (this.connectionCheck()) {
-                                if (command.getCommand() != CommandList.REG) command.setLoginPassword(login, password);
-                                else {
-                                    login = command.getLogin();
-                                    password = sha384(command.getPassword());
-                                    command.setPassword(password);
-                                }
-                                manager.send(command);
-                                ServerMessage message = manager.recive();
-                                if (message != null) {
-                                    if (message.getMessage() != null)
-                                        System.out.println(message.getMessage());
-                                    if (message.getProducts() != null)
-                                        for (Product p : message.getProducts()) System.out.println(p);
-                                } else System.out.println("Ответ cервера некорректен");
-                            } else System.out.println("Подключение потеряно.");
+                            } else if (command.getCommand() != CommandList.REG)
+                                command.setLoginPassword(login, password);
+                            else {
+                                login = command.getLogin();
+                                password = sha384(command.getPassword());
+                                command.setPassword(password);
+                            }
+                            manager.send(command);
+                            ServerMessage message = manager.recive();
+                            if (message != null) {
+                                if (message.getMessage() != null)
+                                    System.out.println(message.getMessage());
+                                if (message.getProducts() != null)
+                                    for (Product p : message.getProducts()) System.out.println(p);
+                            } else System.out.println("Ответ cервера некорректен");
                         } else {
                             System.out.println("Команда не была отправлена.");
                         }
