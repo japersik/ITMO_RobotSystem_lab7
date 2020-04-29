@@ -50,14 +50,15 @@ public class ClientWorker {
                             if (command.getCommand() == CommandList.LOGIN) {
                                 login = command.getLogin();
                                 password = sha384(command.getPassword());
-                                System.out.println(password);
+                                command.setPassword(password);
                                 this.connectionCheck();
-                            } else if (command.getCommand() != CommandList.REG)
-                                command.setLoginPassword(login, password);
-                            else {
+                                continue;
+                            } else if (command.getCommand() == CommandList.REG) {
                                 login = command.getLogin();
                                 password = sha384(command.getPassword());
                                 command.setPassword(password);
+                            } else {
+                                command.setLoginPassword(login, password);
                             }
                             manager.send(command);
                             ServerMessage message = manager.recive();

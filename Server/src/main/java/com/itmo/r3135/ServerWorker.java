@@ -262,11 +262,13 @@ public class ServerWorker implements Mediator {
             );
             statement.setString(1, command.getLogin());
             statement.setString(2, command.getLogin());
+            logger.warn(command.getPassword());
             statement.setBytes(3, command.getPassword().getBytes());
             ResultSet resultSet = statement.executeQuery();
             if (!resultSet.next()) return false;
             else return true;
         } catch (SQLException e) {
+            logger.error(e);
             return false;
         }
     }
