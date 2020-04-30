@@ -36,7 +36,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>lab6-client</finalName>
+                    <finalName>lab7-client</finalName>
                     <archive>
                         <manifest>
                             <mainClass>com.itmo.r3135.ClientMain</mainClass>
