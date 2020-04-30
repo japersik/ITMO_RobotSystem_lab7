@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  */
 public class Product implements Comparable<Product>, Serializable {
     private int id;
-    private final String name;
+    private String name;
     private Coordinates coordinates;
     private LocalDateTime creationDate;
     private Double price;
@@ -69,6 +69,16 @@ public class Product implements Comparable<Product>, Serializable {
         this.userName = userName;
     }
 
+    public void updateProduct(Product product){
+        this.name = product.getName();
+        this.coordinates = product.coordinates;
+        this.creationDate = product.getCreationDate();
+        this.price = product.getPrice();
+        this.partNumber = product.getPartNumber();
+        this.manufactureCost = product.getManufactureCost();
+        this.unitOfMeasure = product.getUnitOfMeasure();
+        this.owner = product.getOwner();
+    }
     /**
      * Проверяет элемент на сообтетвтвовение требованиям коллекции
      */

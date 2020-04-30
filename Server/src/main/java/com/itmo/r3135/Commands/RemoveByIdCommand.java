@@ -6,9 +6,10 @@ import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Product;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
@@ -34,21 +35,21 @@ public class RemoveByIdCommand extends AbstractCommand {
         int startSize = products.size();
         if (products.size() > 0) {
             int id = command.getIntValue();
-            ResultSet resultSet;
             try {
-                Statement statement = dataManager.getSqlManager().getConnection().createStatement();
-                resultSet = statement.executeQuery(
-                        "delete from products where id = " + id + " ,user_id = " + userId + " returgignd id ");
-
-                if (!resultSet.next())
+                PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
+                        "delete from products where id = ? returning products.id"
+                );
+                statement.setInt(1, id);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next())
                     products.removeAll((products.parallelStream().filter(product -> product.getId() == id)
                             .collect(Collectors.toCollection(HashSet::new))));
             } catch (SQLException e) {
-                return new ServerMessage("Ошибка поиска объектов пользователя в базе.");
+                return new ServerMessage(" Ошибка работы с базой данных");
             }
             if (startSize == products.size()) {
                 dataManager.getLock().writeLock().unlock();
-                return new ServerMessage("Элемент с id " + id + " не существует или принадлежит не Вам.");
+                return new ServerMessage("Элемент с id " + id + " не существует. Или принадлежит не Вам.");
             }
             dataManager.uptadeDateChange();
             dataManager.getLock().writeLock().unlock();
