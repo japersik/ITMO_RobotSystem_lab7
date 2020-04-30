@@ -39,6 +39,7 @@ public class UpdeteIdCommand extends AbstractCommand {
             Product newProduct = command.getProduct();
             int startSize = products.size();
             if (newProduct.checkNull()) {
+                dataManager.getLock().writeLock().unlock();
                 return new ServerMessage("Элемент не удовлетворяет требованиям коллекции");
             } else {
                 if (updateProductSQL(newProduct, id) != -1)
@@ -48,11 +49,14 @@ public class UpdeteIdCommand extends AbstractCommand {
                 if (startSize - products.size() == 1)
                     if (products.add(newProduct)) {
                         dataManager.uptadeDateChange();
+                        dataManager.getLock().writeLock().unlock();
                         return new ServerMessage("Элемент успешно обновлён.");
-                    } else return
+                    } else {
+                        dataManager.getLock().writeLock().unlock();
+                        return
                             new ServerMessage("При замене элементов что-то пошло не так." +
                                     " Возможно, объект Вам не принаджежит");
-            }
+            }}
         } catch (JsonSyntaxException ex) {
             dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Возникла ошибка при замене элемента");
