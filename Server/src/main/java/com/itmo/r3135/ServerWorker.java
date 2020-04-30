@@ -180,13 +180,14 @@ public class ServerWorker implements Mediator {
                 statement.setString(3, emailParse(command.getLogin()));
                 try {
                     statement.execute();
+                    if (dataManager.getMailManager()!=null)
                     dataManager.getSqlManager().userStatusReg(
                             dataManager.getSqlManager().getUserId(command.getLogin()));
                 } catch (SQLException e) {
                     logger.error("Попытка добавления по существующему ключу");
                     return new ServerMessage("Пользователь с именем " + emailParse(command.getLogin()) + " уже существует!");
                 }
-                if (!dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()),
+                if (dataManager.getMailManager()!=null && !dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()),
                         dataManager.getSqlManager().getUserCode(dataManager.getSqlManager().getUserId(command.getLogin())))) {
                     logger.error("ERROR IN EMAIL SENDING TO " + command.getLogin());
                     return new ServerMessage("Successful registration!");

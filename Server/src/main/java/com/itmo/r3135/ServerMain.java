@@ -57,10 +57,15 @@ public class ServerMain {
             String mailPassword = properties.getProperty("mail.password");
             String mailHost = properties.getProperty("mail.smtp.host");
             boolean smtpAuth = Boolean.valueOf(properties.getProperty("mail.smtp.auth"));
+            boolean modeAuth = Boolean.valueOf(properties.getProperty("mail.mode.auth"));
+            boolean mailInit = true;
 
             ServerWorker worker = new ServerWorker(port);
-            if (worker.SQLInit(dbHost, dbPort, dbName, dbUser, dbPassword) &&
-                    worker.mailInit(mailUser,mailPassword,mailHost,mailPort,smtpAuth))
+
+            if (modeAuth) {
+                 mailInit = worker.mailInit(mailUser,mailPassword,mailHost,mailPort,smtpAuth);
+            }
+            if (worker.SQLInit(dbHost, dbPort, dbName, dbUser, dbPassword) && mailInit)
                 try {
                     worker.startWork();
                 } catch (BindException e) {
