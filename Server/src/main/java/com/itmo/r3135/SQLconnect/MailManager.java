@@ -81,13 +81,11 @@ public class MailManager {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 result.append(line).append("\n");
-
             }
             htmlText = result.toString();
             htmlText = htmlText.replace("insertLogin", login);
             htmlText = htmlText.replace("insertEmail", eMail);
             htmlText = htmlText.replace("verificationCode", code);
-
         } catch (Exception e) {
             logger.error("Error in html file read!");
             return false;
