@@ -57,7 +57,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>lab6-server</finalName>
+                    <finalName>lab7-server</finalName>
                     <archive>
                         <manifest>
                             <mainClass>com.itmo.r3135.ServerMain</mainClass>

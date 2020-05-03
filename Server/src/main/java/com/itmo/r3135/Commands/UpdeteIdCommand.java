@@ -45,11 +45,6 @@ public class UpdeteIdCommand extends AbstractCommand {
                 if (updateProductSQL(newProduct, id) != -1)
                     for (Product productFoUpdate : products) {
                         if (productFoUpdate.getId() == id) productFoUpdate.updateProduct(newProduct);
-                    }
-                if (startSize - products.size() == 1)
-                    if (products.add(newProduct)) {
-                        dataManager.uptadeDateChange();
-                        dataManager.getLock().writeLock().unlock();
                         return new ServerMessage("Элемент успешно обновлён.");
                     } else {
                         dataManager.getLock().writeLock().unlock();
@@ -71,7 +66,7 @@ public class UpdeteIdCommand extends AbstractCommand {
             try {
                 PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
                         "UPDATE products " +
-                                "SET name = ?, x=?, y=?, creationdate=?, price=?, partnumber=?, manufacturecost=?, unitofmeasure_id=? " +
+                                "SET name = ?, x=?, y=?, creationdate=?, price=?, partnumber=?, manufacturecost=?, unitofmeasure_id= (select id from unitofmeasures where unitname = ?) " +
                                 "WHERE id = ? returning id"
                 );
                 statement.setString(1, product.getName());
@@ -99,8 +94,8 @@ public class UpdeteIdCommand extends AbstractCommand {
         int idOwner = -1;
         try {
             PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
-                    "UPDATE owners" +
-                            "(ownername=?, ownerbirthday=?, ownereyecolor_id=?, ownerhaircolor_id=?) where id = ? returning id"
+                    "UPDATE owners SET " +
+                            "ownername = ? , ownerbirthday = ? , ownereyecolor_id = (select id from colors where name = ?) , ownerhaircolor_id = (select id from colors where name = ?) where id = ? returning id"
             );
 
             statement.setString(1, owner.getName());

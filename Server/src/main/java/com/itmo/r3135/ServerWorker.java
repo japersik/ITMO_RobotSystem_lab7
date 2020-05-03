@@ -84,10 +84,9 @@ public class ServerWorker implements Mediator {
 
     public boolean mailInit(String mailUser, String mailPassword, String mailHost, int mailPort, boolean smtpAuth) {
         MailManager mailManager = new MailManager(mailUser, mailPassword, mailHost, mailPort, smtpAuth);
-
         boolean init = mailManager.initMail();
-//                init = init &&
-        //     mailManager.sendMail(mailUser);//адрес для теста отправки
+        init = init &&
+                mailManager.sendMail(mailUser);//адрес для теста отправки
         dataManager.setMailManager(mailManager);
         return init;
     }
@@ -101,8 +100,8 @@ public class ServerWorker implements Mediator {
         logger.info("Load collection.");
         loadCollectionCommand.activate(new Command(CommandList.LOAD));
         logger.info("Server started on port " + port + ".");
-        Thread keyBoard = new Thread(() -> keyBoardWork());
-        Thread datagramm = new Thread(() -> datagrammWork());
+        Thread keyBoard = new Thread(this::keyBoardWork);
+        Thread datagramm = new Thread(this::datagrammWork);
         keyBoard.setDaemon(false);
         datagramm.setDaemon(true);
         keyBoard.start();
@@ -116,14 +115,12 @@ public class ServerWorker implements Mediator {
                 System.out.print("//: ");
                 if (input.hasNextLine()) {
                     String inputString = input.nextLine();
-                    switch (inputString) {
-                        case "exit":
-                            logger.info("Command 'exit' from console.");
-                            System.exit(666);
-                            break;
-                        default:
-                            logger.error("Bad command.");
-                            logger.info("Available commands:,'exit'.");
+                    if ("exit".equals(inputString)) {
+                        logger.info("Command 'exit' from console.");
+                        System.exit(666);
+                    } else {
+                        logger.error("Bad command.");
+                        logger.info("Available commands:,'exit'.");
                     }
                 } else {
                     System.exit(666);
@@ -263,8 +260,7 @@ public class ServerWorker implements Mediator {
     }
 
     private String emailParse(String email) {
-        String username = email.split("@")[0];
-        return username;
+        return email.split("@")[0];
     }
 
     private boolean checkAccount(Command command) {
@@ -276,8 +272,7 @@ public class ServerWorker implements Mediator {
             statement.setString(2, command.getLogin());
             statement.setBytes(3, command.getPassword().getBytes());
             ResultSet resultSet = statement.executeQuery();
-            if (!resultSet.next()) return false;
-            else return true;
+            return resultSet.next();
         } catch (SQLException e) {
             logger.error(e);
             return false;
@@ -290,7 +285,7 @@ public class ServerWorker implements Mediator {
             if (login.length != 2) return false;
             String[] address = login[1].split("\\.");
             if (address.length != 2) return false;
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         return true;
     }

@@ -87,7 +87,7 @@ public class ClientWorker {
         manager.send(command);
         ServerMessage recive = manager.recive();
         if (recive != null) {
-            if (recive.getLogin() == false) {
+            if (!recive.getLogin()) {
                 System.out.println(recive.getMessage());
                 return true;
             }
@@ -104,7 +104,7 @@ public class ClientWorker {
     }
 
     public String sha384(String password) {
-        if (password == null) return password;
+        if (password == null) return null;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-384");
             byte[] messageDigest = md.digest(password.getBytes());
