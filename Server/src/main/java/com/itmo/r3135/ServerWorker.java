@@ -13,9 +13,6 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,6 +44,7 @@ public class ServerWorker implements Mediator {
     private AbstractCommand removeGreaterCommand;
     private AbstractCommand executeScriptCommand;
     private AbstractCommand infoCommand;
+    private AbstractCommand regCommand;
 
     {
         dataManager = new DataManager();
@@ -65,6 +63,7 @@ public class ServerWorker implements Mediator {
         removeGreaterCommand = new RemoveGreaterCommand(dataManager, this);
         executeScriptCommand = new ExecuteScriptCommand(dataManager, this);
         infoCommand = new InfoCommand(dataManager, this);
+        regCommand = new RegCommand(dataManager, this);
     }
 
     public ServerWorker(int port) {
@@ -77,9 +76,10 @@ public class ServerWorker implements Mediator {
     public boolean SQLInit(String host, int port, String dataBaseName, String user, String password) {
         sqlManager = new SQLManager();
         boolean isConnect = sqlManager.initDatabaseConnection(host, port, dataBaseName, user, password);
-        boolean isInit = sqlManager.initTables();
+        boolean isInit = false;
+        if (isConnect) isInit = sqlManager.initTables();
         dataManager.setSqlManager(sqlManager);
-        return isConnect && isInit;
+        return isInit;
     }
 
     public boolean mailInit(String mailUser, String mailPassword, String mailHost, int mailPort, boolean smtpAuth) {
@@ -165,43 +165,15 @@ public class ServerWorker implements Mediator {
 
     @Override
     public ServerMessage processing(Command command) {
-        //Приверка, что команда - регистрация.
         if (command.getCommand() == CommandList.REG) {
-            try {
-                if (!checkEmail(command.getLogin())) return new ServerMessage("Incorrect login!", false);
-                PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
-                        "insert into users (email, password_hash, username) values (?, ?, ?) "
-                );
-                statement.setString(1, command.getLogin());
-                statement.setBytes(2, command.getPassword().getBytes());
-                statement.setString(3, emailParse(command.getLogin()));
-                try {
-                    statement.execute();
-                    if (dataManager.getMailManager()!=null)
-                    dataManager.getSqlManager().userStatusReg(
-                            dataManager.getSqlManager().getUserId(command.getLogin()));
-                } catch (SQLException e) {
-                    logger.error("Попытка добавления по существующему ключу");
-                    return new ServerMessage("Пользователь с именем " + emailParse(command.getLogin()) + " уже существует!");
-                }
-                if (dataManager.getMailManager()!=null && !dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()),
-                        dataManager.getSqlManager().getUserCode(dataManager.getSqlManager().getUserId(command.getLogin())))) {
-                    logger.error("ERROR IN EMAIL SENDING TO " + command.getLogin());
-                    return new ServerMessage("Successful registration!");
-                }
-                return new ServerMessage("Successful registration check your email :)");
-
-            } catch (SQLException e) {
-                logger.error("Бда, бда SQLException");
-                return new ServerMessage("Ошибка регистрации");
-            }
+            return regCommand.activate(command);
         }
         //Если это первое сообщение от пользователя
         else if (command.getPassword() == null & command.getLogin() == null) {
             return new ServerMessage("Good connect. Please write your's login and password!\n " +
                     "Command login: 'login [email/name] [password]'\n" +
                     "Command registration: 'reg [email] [password]'", false);
-        } else if (!checkAccount(command)) {
+        } else if (!dataManager.getSqlManager().checkAccount(command)) {
             return new ServerMessage("Incorrect login or password!\n" +
                     "Command login: 'login [email/name] [password]'\n" +
                     "Command registration: 'reg [email] [password]'\n", false);
@@ -259,34 +231,5 @@ public class ServerWorker implements Mediator {
             }
     }
 
-    private String emailParse(String email) {
-        return email.split("@")[0];
-    }
 
-    private boolean checkAccount(Command command) {
-        try {
-            PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
-                    "select * from users where (email = ? or username =?) and password_hash = ?"
-            );
-            statement.setString(1, command.getLogin());
-            statement.setString(2, command.getLogin());
-            statement.setBytes(3, command.getPassword().getBytes());
-            ResultSet resultSet = statement.executeQuery();
-            return resultSet.next();
-        } catch (SQLException e) {
-            logger.error(e);
-            return false;
-        }
-    }
-
-    private Boolean checkEmail(String email) {
-        try {
-            String[] login = email.split("@");
-            if (login.length != 2) return false;
-            String[] address = login[1].split("\\.");
-            if (address.length != 2) return false;
-        } catch (Exception ignored) {
-        }
-        return true;
-    }
 }
