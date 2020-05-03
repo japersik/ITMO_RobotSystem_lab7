@@ -1,6 +1,5 @@
 package com.itmo.r3135;
 
-import com.itmo.r3135.SQLconnect.MailManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -63,7 +62,7 @@ public class ServerMain {
             ServerWorker worker = new ServerWorker(port);
 
             if (modeAuth) {
-                 mailInit = worker.mailInit(mailUser,mailPassword,mailHost,mailPort,smtpAuth);
+                mailInit = worker.mailInit(mailUser,mailPassword,mailHost,mailPort,smtpAuth);
             }
             if (worker.SQLInit(dbHost, dbPort, dbName, dbUser, dbPassword) && mailInit)
                 try {

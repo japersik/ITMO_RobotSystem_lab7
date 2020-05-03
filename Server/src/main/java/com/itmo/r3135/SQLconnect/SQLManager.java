@@ -1,5 +1,6 @@
 package com.itmo.r3135.SQLconnect;
 
+import com.itmo.r3135.System.Command;
 import com.itmo.r3135.World.Color;
 import com.itmo.r3135.World.UnitOfMeasure;
 import org.apache.logging.log4j.LogManager;
@@ -192,5 +193,33 @@ public class SQLManager {
 
     public boolean isNewPass(int uderId) {
         return "npass".equals(getUserStatus(uderId));
+    }
+
+
+    public boolean checkAccount(Command command) {
+        try {
+            PreparedStatement statement = connection.prepareStatement(
+                    "select * from users where (email = ? or username =?) and password_hash = ?"
+            );
+            statement.setString(1, command.getLogin());
+            statement.setString(2, command.getLogin());
+            statement.setBytes(3, command.getPassword().getBytes());
+            ResultSet resultSet = statement.executeQuery();
+            return resultSet.next();
+        } catch (SQLException e) {
+            logger.error(e);
+            return false;
+        }
+    }
+
+    public boolean checkEmail(String email) {
+        try {
+            String[] login = email.split("@");
+            if (login.length != 2) return false;
+            String[] address = login[1].split("\\.");
+            if (address.length != 2) return false;
+        } catch (Exception ignored) {
+        }
+        return true;
     }
 }
