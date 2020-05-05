@@ -19,20 +19,18 @@ import java.util.concurrent.Executors;
 
 public class ServerWorker implements Mediator {
     static final Logger logger = LogManager.getLogger("ServerWorker");
+    ExecutorService executePool = Executors.newFixedThreadPool(8);
+    ExecutorService sendPool = Executors.newFixedThreadPool(8);
     private int port;
     private DatagramSocket socket;
     private DataManager dataManager;
     private Sender sender;
     private Reader reader;
-
     private SQLManager sqlManager;
-    ExecutorService executePool = Executors.newFixedThreadPool(8);
-    ExecutorService sendPool = Executors.newFixedThreadPool(8);
-
     private AbstractCommand loadCollectionCommand;
     private AbstractCommand addCommand;
     private AbstractCommand showCommand;
-    private AbstractCommand updeteIdCommand;
+    private AbstractCommand updateIdCommand;
     private AbstractCommand helpCommand;
     private AbstractCommand removeByIdCommand;
     private AbstractCommand groupCountingByCoordinatesCommand;
@@ -50,7 +48,7 @@ public class ServerWorker implements Mediator {
         dataManager = new DataManager();
         addCommand = new AddCommand(dataManager, this);
         showCommand = new ShowCommand(dataManager, this);
-        updeteIdCommand = new UpdeteIdCommand(dataManager, this);
+        updateIdCommand = new UpdeteIdCommand(dataManager, this);
         helpCommand = new HelpCommand(dataManager, this);
         removeByIdCommand = new RemoveByIdCommand(dataManager, this);
         groupCountingByCoordinatesCommand = new GroupCountingByCoordinatesCommand(dataManager, this);
@@ -167,10 +165,10 @@ public class ServerWorker implements Mediator {
     public ServerMessage processing(Command command) {
         if (command.getCommand() == CommandList.REG) {
             return regCommand.activate(command);
-        }
-        //Если это первое сообщение от пользователя
-        else if (command.getPassword() == null & command.getLogin() == null) {
-            return new ServerMessage("Good connect. Please write your's login and password!\n " +
+        } else if (command.getCommand() == CommandList.PING) {
+            if (dataManager.getSqlManager().checkAccount(command))
+                return new ServerMessage("Good connect and login!", true);
+            else return new ServerMessage("Good connect. Please write your's login and password!\n " +
                     "Command login: 'login [email/name] [password]'\n" +
                     "Command registration: 'reg [email] [password]'", false);
         } else if (!dataManager.getSqlManager().checkAccount(command)) {
@@ -192,7 +190,7 @@ public class ServerWorker implements Mediator {
             try {
                 switch (command.getCommand()) {
                     case LOGIN:
-                        return new ServerMessage("Good connect. Hello from server!");
+                        return new ServerMessage("Good login!");
                     case HELP:
                         return helpCommand.activate(command);
                     case INFO:
@@ -202,7 +200,7 @@ public class ServerWorker implements Mediator {
                     case ADD:
                         return addCommand.activate(command);
                     case UPDATE:
-                        return updeteIdCommand.activate(command);
+                        return updateIdCommand.activate(command);
                     case REMOVE_BY_ID:
                         return removeByIdCommand.activate(command);
                     case CLEAR:

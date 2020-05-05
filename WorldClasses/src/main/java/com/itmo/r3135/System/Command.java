@@ -15,8 +15,8 @@ public class Command implements Serializable {
     private String password;
 
     {
-        login = null;
-        password = null;
+        login = "";
+        password = "";
     }
 
     public void setLogin(String login) {

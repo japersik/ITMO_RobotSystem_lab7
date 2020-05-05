@@ -16,12 +16,12 @@ import java.util.Scanner;
 
 
 public class ClientWorker {
-    private SendReciveManager manager;
+    private SendReceiveManager manager;
     private DatagramChannel datagramChannel = DatagramChannel.open();
     private SocketAddress socketAddress;
     private StringCommandManager stringCommandManager;
-    private String login;
-    private String password;
+    private String login = "";
+    private String password = "";
 
 
     {
@@ -30,7 +30,7 @@ public class ClientWorker {
 
     public ClientWorker(SocketAddress socketAddress) throws IOException {
         this.socketAddress = socketAddress;
-        manager = new SendReciveManager(socketAddress, datagramChannel);
+        manager = new SendReceiveManager(socketAddress, datagramChannel);
         datagramChannel.configureBlocking(false);
     }
 
@@ -77,31 +77,32 @@ public class ClientWorker {
         }
     }
 
-    public boolean connectionCheck() throws IOException, InterruptedException {
-        System.out.println("Проверка соединения:");
-        datagramChannel.connect(socketAddress);
-        datagramChannel.disconnect();
-        datagramChannel.socket().setSoTimeout(1000);
-        Command command = new Command(CommandList.LOGIN, "Привет");
-        command.setLoginPassword(login, password);
-        manager.send(command);
-        ServerMessage recive = manager.recive();
-        if (recive != null) {
-            if (!recive.getLogin()) {
-                System.out.println(recive.getMessage());
-                return true;
-            }
-            if (recive.getMessage().equals("Good connect. Hello from server!")) {
-                return true;
-            } else {
-                System.out.println("Неверное подтверждение от сервера!");
-                return false;
-            }
-        } else {
-            System.out.println("Соединение не установлено.");
-            return false;
-        }
-    }
+//    public boolean connectionCheck() throws IOException, InterruptedException {
+//        System.out.println("Проверка соединения:");
+//        datagramChannel.connect(socketAddress);
+//        datagramChannel.disconnect();
+//        datagramChannel.socket().setSoTimeout(1000);
+//        Command command = new Command(CommandList.LOGIN, "Привет");
+//        command.setLoginPassword(login, password);
+//        manager.send(command);
+//        ServerMessage recive = manager.recive();
+//        if (recive != null) {
+//            if (!recive.getLogin()) {
+//                System.out.println(recive.getMessage());
+//                return true;
+//            }
+//            if (recive.getMessage().equals("Good connect. Hello from server!")) {
+//                return true;
+//            } else {
+//                System.out.println("Неверное подтверждение от сервера!");
+//                return false;
+//            }
+//        } else {
+//            System.out.println("Соединение не установлено.");
+//            return false;
+//        }
+//    }
+
 
     public String sha384(String password) {
         if (password == null) return null;
@@ -117,5 +118,13 @@ public class ClientWorker {
         } catch (NoSuchAlgorithmException e) {
             return password;
         }
+    }
+
+    public long ping() {
+        return manager.ping();
+    }
+
+    public long ping(String login, String password) {
+        return manager.ping(login, password);
     }
 }

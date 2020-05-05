@@ -1,6 +1,7 @@
 package com.itmo.r3135;
 
 import com.itmo.r3135.System.Command;
+import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.System.Tools.DatagramTrimer;
 
@@ -9,12 +10,13 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
+import java.util.Date;
 
-public class SendReciveManager {
+public class SendReceiveManager {
     SocketAddress socketAddress;
     DatagramChannel datagramChannel;
 
-    public SendReciveManager(SocketAddress socketAddress, DatagramChannel datagramChannel) {
+    public SendReceiveManager(SocketAddress socketAddress, DatagramChannel datagramChannel) {
         this.socketAddress = socketAddress;
         this.datagramChannel = datagramChannel;
     }
@@ -84,4 +86,33 @@ public class SendReciveManager {
             return null;
         }
     }
+
+    public long ping() {
+        return ping("", "");
+    }
+
+    public long ping(String login, String password) {
+        try {
+            System.out.println("Проверка соединения:");
+            datagramChannel.connect(socketAddress);
+            datagramChannel.disconnect();
+            datagramChannel.socket().setSoTimeout(1000);
+            Command command = new Command(CommandList.PING);
+            command.setLoginPassword(login, password);
+            send(command);
+            Date sendDate = new Date();
+            ServerMessage receivedMessage = recive();
+            if (receivedMessage != null) {
+                Date receiveDate = new Date();
+                long ping = (receiveDate.getTime() - sendDate.getTime());
+                System.out.println("Время отклика: " + ping + " ms.");
+                System.out.println(receivedMessage.getMessage());
+                return ping;
+            }
+        } catch (IOException | InterruptedException ignore) {
+        }
+        System.out.println("Соединение не установлено.");
+        return -1;
+    }
+
 }

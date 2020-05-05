@@ -11,7 +11,6 @@ public class ClientMain {
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
         while (true) {
-            //     System.out.println("Внимание! В тестовых целях сервер может обрабатывает 1 сообщение в 3 секунды!!!");
             System.out.println("Для начала работы с коллекцией ведите адрес сервера в формате \"адрес:порт\" или 'exit' для завершенеия программы.");
             System.out.print("//: ");
             if (!input.hasNextLine()) {
@@ -23,16 +22,16 @@ public class ClientMain {
             } else {
                 try {
                     String[] trimString = inputString.trim().split(":", 2);
-                    String addres = trimString[0];
+                    String address = trimString[0];
                     int port = Integer.parseInt(trimString[1]);
                     if (port < 0 || port > 65535) {
                         System.out.println("Порт - число от 0 до 65535.");
                         continue;
                     }
-                    SocketAddress socketAddress = new InetSocketAddress(addres, port);
+                    SocketAddress socketAddress = new InetSocketAddress(address, port);
                     System.out.println("Запуск прошёл успешно, Потр: " + port + ". Адрес: " + socketAddress);
                     ClientWorker worker = new ClientWorker(socketAddress);
-                    if (worker.connectionCheck()) {
+                    if (worker.ping() != -1) {
                         worker.startWork();
                         break;
                     }
@@ -42,8 +41,6 @@ public class ClientMain {
                     System.out.println("Адрес введён некорректно.");
                 } catch (PortUnreachableException e) {
                     System.out.println("Похоже, сервер по этому адрусе недоступен");
-                } catch (InterruptedException e) {
-                    System.out.println("Не знаю как, но InterruptedException. Обратитесь в тех.поддержку, которой нет.");
                 } catch (IOException e) {
                     System.out.println("Не знаю как, но IOException. Обратитесь в тех.поддержку, которой нет.");
                 }

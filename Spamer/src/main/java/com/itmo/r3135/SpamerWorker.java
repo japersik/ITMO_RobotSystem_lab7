@@ -13,20 +13,34 @@ import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
 import java.util.Random;
+import java.util.Scanner;
 
 public class SpamerWorker {
-    private SendReciveManager manager;
+    private SendReceiveManager manager;
     private DatagramChannel datagramChannel = DatagramChannel.open();
     private SocketAddress socketAddress;
     private StringCommandManager stringCommandManager;
-    private CommandList[] commandLists = {CommandList.HELP, CommandList.INFO, CommandList.ADD, CommandList.SHOW, CommandList.UPDATE, CommandList.REMOVE_BY_ID,
+    private String login = "";
+    private String password = "";
+
+    private CommandList[] commandLists = {
+            CommandList.HELP,
+            CommandList.INFO,
+            CommandList.ADD,
+            CommandList.SHOW,
+            CommandList.UPDATE,
+            CommandList.REMOVE_BY_ID,
             //CommandList.CLEAR,
-            CommandList.EXECUTE_SCRIPT, CommandList.ADD_IF_MIN,
+            CommandList.EXECUTE_SCRIPT,
+            CommandList.ADD_IF_MIN,
             //CommandList.REMOVE_GREATER,
             // CommandList.REMOVE_LOWER,
-            CommandList.GROUP_COUNTING_BY_COORDINATES, CommandList.FILTER_CONTAINS_NAME, CommandList.PRINT_FIELD_DESCENDING_PRICE, CommandList.CHECK};
+            CommandList.GROUP_COUNTING_BY_COORDINATES,
+            CommandList.FILTER_CONTAINS_NAME,
+            CommandList.PRINT_FIELD_DESCENDING_PRICE,
+            CommandList.PING
+    };
 
     {
         stringCommandManager = new StringCommandManager();
@@ -34,49 +48,60 @@ public class SpamerWorker {
 
     public SpamerWorker(SocketAddress socketAddress) throws IOException {
         this.socketAddress = socketAddress;
-        manager = new SendReciveManager(socketAddress, datagramChannel);
+        manager = new SendReceiveManager(socketAddress, datagramChannel);
         datagramChannel.configureBlocking(false);
     }
-    //надо сделать красиое управление
-//    public void startWork() throws IOException, InterruptedException {
-//        String commandString = "";
-//        try (Scanner commandReader = new Scanner(System.in)) {
-//            System.out.print("//: ");
-//
-//            while (!commandString.equals("exit")) {
-//                if (!commandReader.hasNextLine()) {
-//                    break;
-//                } else {
-//                    commandString = commandReader.nextLine();
-//                    Command command = stringCommandManager.getCommandFromString(commandString);
-//                    if (command != null) {
-//                        if (this.connectionCheck()) {
-//                            manager.send(command);
-//                            ServerMessage message = manager.recive();
-//                            if (message != null) {
-//                                if (message.getMessage() != null)
-//                                    System.out.println(message.getMessage());
-//                                if (message.getProducts() != null)
-//                                    for (Product p : message.getProducts()) System.out.println(p);
-//                            } else System.out.println("Ответ cервера некорректен");
-//                        } else System.out.println("Подключение потеряно.");
-//                    } else {
-//                        System.out.println("Команда не была отправлена.");
-//                    }
-//                }
-//                System.out.print("//: ");
-//            }
-//        }
-//    }
 
-    public void spam() throws InterruptedException, IOException {
+    public void startWork() throws IOException {
+        String commandString = "";
+        try (Scanner commandReader = new Scanner(System.in)) {
+            System.out.print("//: ");
+            while (!commandString.equals("exit")) {
+                if (!commandReader.hasNextLine()) {
+                    break;
+                } else {
+                    try {
+                        commandString = commandReader.nextLine();
+                        Command command = stringCommandManager.getCommandFromString(commandString);
+                        if (command != null) {
+                            if (command.getCommand() == CommandList.REG || command.getCommand() == CommandList.LOGIN) {
+                                login = command.getLogin();
+                                password = sha384(command.getPassword());
+                                command.setPassword(password);
+                            } else {
+                               continue;
+                            }
+                            manager.send(command);
+                            ServerMessage message = manager.recive();
+                            if (message != null) {
+                                if (message.getLogin())
+                                    spam();
+                                System.out.println(message.getMessage());
+                            } else System.out.println("Ответ сервера некорректен");
+                        } else {
+                            System.out.println("Команда не была отправлена.");
+                        }
+                    } catch (NullPointerException e) {
+                        System.out.println("NullPointerException! Скорее всего неверно указана дата при создании объекта.");
+                        e.printStackTrace();
+                    }
+                }
+                System.out.print("//: ");
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Ошибка при попытке считать ответ от сервера.");
+        }
+    }
+
+
+    public void spam() throws InterruptedException {
         Generator generator = new Generator();
         Random random = new Random();
         Command command;
         while (true) {
             CommandList typeCommand = commandLists[random.nextInt(commandLists.length)];
-            if (typeCommand == CommandList.CHECK) {
-                connectionCheck();
+            if (typeCommand == CommandList.PING) {
+                manager.ping(login,password);
                 continue;
             } else if (typeCommand == CommandList.HELP || typeCommand == CommandList.INFO || typeCommand == CommandList.SHOW ||
                     typeCommand == CommandList.CLEAR || typeCommand == CommandList.PRINT_FIELD_DESCENDING_PRICE || typeCommand == CommandList.GROUP_COUNTING_BY_COORDINATES) {
@@ -89,38 +114,14 @@ public class SpamerWorker {
                     if (!product.checkNull()) break;
                 }
                 command = new Command(typeCommand, product);
-                command.setLoginPassword("sky@hub63.ru", sha384("testpasss"));
+                command.setLoginPassword(login, password);
             } else continue;
             manager.send(command);
             Thread.sleep(1);
-            if (command.getCommand() == CommandList.CHECK) {
-                connectionCheck();
-            }
+//            if (command.getCommand() == CommandList.PING) {
+//                connectionCheck();
+//            }
         }
-    }
-
-    public boolean connectionCheck() throws IOException, InterruptedException {
-
-        System.out.println("Проверка соединения:");
-        datagramChannel.connect(socketAddress);
-        datagramChannel.disconnect();
-        datagramChannel.socket().setSoTimeout(1000);
-        Date sendDate = new Date();
-        Command command = new Command(CommandList.LOGIN, "Привет");
-        command.setLoginPassword("sky@hub63.ru", sha384("testpasss"));
-        manager.send(command);
-        ServerMessage recive = manager.recive();
-        if (recive != null) {
-            System.out.println(recive.getMessage());
-            Date resiveDate = new Date();
-            System.out.println("Время ответа: " + (resiveDate.getTime() - sendDate.getTime()) + " ms.");
-            if (recive.getMessage().equals("Good connect. Hello from server!")) {
-                return true;
-            } else {
-                System.out.println("Неверное подтверждение от сервера!");
-                return false;
-            }
-        } else return false;
     }
 
     public String sha384(String password) {
@@ -137,5 +138,12 @@ public class SpamerWorker {
         } catch (NoSuchAlgorithmException e) {
             return password;
         }
+    }
+
+    public long ping() {
+        return manager.ping();
+    }
+    public long ping(String login, String password) {
+        return manager.ping(login, password);
     }
 }

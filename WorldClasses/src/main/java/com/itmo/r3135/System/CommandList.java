@@ -18,7 +18,9 @@ public enum CommandList implements Serializable {
     GROUP_COUNTING_BY_COORDINATES("group_counting_by_coordinates"),
     FILTER_CONTAINS_NAME("filter_contains_name"),
     PRINT_FIELD_DESCENDING_PRICE("print_field_descending_price"),
-    CHECK("check_connection"),
+
+    PING("ping"),
+ //   CHECK("check_connection"),
     CODE("code"),
     LOGIN("login"),
     REG("reg");
