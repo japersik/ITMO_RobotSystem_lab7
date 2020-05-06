@@ -42,6 +42,8 @@ public class SpamerMain {
                     System.out.println("Похоже, сервер по этому адрусе недоступен");
                 } catch (IOException e) {
                     System.out.println(e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
 

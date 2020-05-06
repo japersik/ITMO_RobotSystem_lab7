@@ -36,6 +36,7 @@ public class HelpCommand extends AbstractCommand {
                String.format(format, "clear", "Очистить коллекцию") +
                String.format(format, "login [email/name] [password]", "Авторизация") +
                String.format(format, "reg [email] [password]", "Регистрация нового пользователя") +
+                       
                        ("");
         return new ServerMessage(s);
     }

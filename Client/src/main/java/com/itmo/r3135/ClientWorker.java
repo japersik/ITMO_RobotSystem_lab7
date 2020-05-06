@@ -1,12 +1,18 @@
 package com.itmo.r3135;
 
+import com.itmo.r3135.Connector.Executor;
+import com.itmo.r3135.Connector.PingChecker;
+import com.itmo.r3135.Connector.Reader;
+import com.itmo.r3135.Connector.Sender;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.System.Tools.StringCommandManager;
 import com.itmo.r3135.World.Product;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
@@ -15,11 +21,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 
-public class ClientWorker {
-    private SendReceiveManager manager;
+public class ClientWorker implements Executor {
+    //  private SendReceiveManager manager;
     private DatagramChannel datagramChannel = DatagramChannel.open();
+    private Sender sender;
+    private Reader reader;
     private SocketAddress socketAddress;
     private StringCommandManager stringCommandManager;
+
     private String login = "";
     private String password = "";
 
@@ -30,12 +39,14 @@ public class ClientWorker {
 
     public ClientWorker(SocketAddress socketAddress) throws IOException {
         this.socketAddress = socketAddress;
-        manager = new SendReceiveManager(socketAddress, datagramChannel);
-        datagramChannel.configureBlocking(false);
+        DatagramChannel datagramChannel = DatagramChannel.open();
+        sender = new Sender(datagramChannel);
+        reader = new Reader(socketAddress, datagramChannel);
+        reader.setExecutor(this);
     }
 
-    public void startWork() throws IOException {
-
+    public void startWork() {
+        reader.startListening();
         String commandString = "";
         try (Scanner commandReader = new Scanner(System.in)) {
             System.out.print("//: ");
@@ -54,14 +65,7 @@ public class ClientWorker {
                             } else {
                                 command.setLoginPassword(login, password);
                             }
-                            manager.send(command);
-                            ServerMessage message = manager.recive();
-                            if (message != null) {
-                                if (message.getMessage() != null)
-                                    System.out.println(message.getMessage());
-                                if (message.getProducts() != null)
-                                    for (Product p : message.getProducts()) System.out.println(p);
-                            } else System.out.println("Ответ сервера некорректен");
+                            sender.send(command, socketAddress);
                         } else {
                             System.out.println("Команда не была отправлена.");
                         }
@@ -72,37 +76,8 @@ public class ClientWorker {
                 }
                 System.out.print("//: ");
             }
-        } catch (InterruptedException e) {
-            System.out.println("Ошибка при попытке считать ответ от сервера.");
         }
     }
-
-//    public boolean connectionCheck() throws IOException, InterruptedException {
-//        System.out.println("Проверка соединения:");
-//        datagramChannel.connect(socketAddress);
-//        datagramChannel.disconnect();
-//        datagramChannel.socket().setSoTimeout(1000);
-//        Command command = new Command(CommandList.LOGIN, "Привет");
-//        command.setLoginPassword(login, password);
-//        manager.send(command);
-//        ServerMessage recive = manager.recive();
-//        if (recive != null) {
-//            if (!recive.getLogin()) {
-//                System.out.println(recive.getMessage());
-//                return true;
-//            }
-//            if (recive.getMessage().equals("Good connect. Hello from server!")) {
-//                return true;
-//            } else {
-//                System.out.println("Неверное подтверждение от сервера!");
-//                return false;
-//            }
-//        } else {
-//            System.out.println("Соединение не установлено.");
-//            return false;
-//        }
-//    }
-
 
     public String sha384(String password) {
         if (password == null) return null;
@@ -121,10 +96,27 @@ public class ClientWorker {
     }
 
     public long ping() {
-        return manager.ping();
+        return PingChecker.ping(new Command(CommandList.PING), socketAddress);
     }
 
-    public long ping(String login, String password) {
-        return manager.ping(login, password);
+    @Override
+    public void execute(byte[] data, SocketAddress inputAddress) {
+        try (
+                ObjectInputStream objectInputStream = new ObjectInputStream(
+                        new ByteArrayInputStream(data));
+        ) {
+            ServerMessage serverMessage = (ServerMessage) objectInputStream.readObject();
+            objectInputStream.close();
+            if (serverMessage != null) {
+                if (serverMessage.getMessage() != null)
+                    System.out.println(serverMessage.getMessage());
+                if (serverMessage.getProducts() != null)
+                    for (Product p : serverMessage.getProducts()) System.out.println(p);
+            } else System.out.println("Ответ сервера некорректен.");
+
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Ошибка десериализации.");
+        }
+
     }
 }

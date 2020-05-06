@@ -32,6 +32,7 @@ public class ClientMain {
                     System.out.println("Запуск прошёл успешно, Потр: " + port + ". Адрес: " + socketAddress);
                     ClientWorker worker = new ClientWorker(socketAddress);
                     if (worker.ping() != -1) {
+                        System.out.println("Проверка соединения успешна.");
                         worker.startWork();
                         break;
                     }
@@ -42,11 +43,10 @@ public class ClientMain {
                 } catch (PortUnreachableException e) {
                     System.out.println("Похоже, сервер по этому адрусе недоступен");
                 } catch (IOException e) {
-                    System.out.println("Не знаю как, но IOException. Обратитесь в тех.поддержку, которой нет.");
+                    System.out.println("Не знаю как, но IOException. Обратитесь в тех.поддержку, которой нет." +e);
                 }
             }
         }
         System.out.println("Работа программы завершена.");
-        System.exit(0);
     }
 }

@@ -1,5 +1,9 @@
 package com.itmo.r3135;
 
+import com.itmo.r3135.Connector.Executor;
+import com.itmo.r3135.Connector.PingChecker;
+import com.itmo.r3135.Connector.Reader;
+import com.itmo.r3135.Connector.Sender;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
@@ -7,23 +11,25 @@ import com.itmo.r3135.System.Tools.StringCommandManager;
 import com.itmo.r3135.World.Generator;
 import com.itmo.r3135.World.Product;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
-import java.util.Scanner;
 
-public class SpamerWorker {
-    private SendReceiveManager manager;
+public class SpamerWorker implements Executor {
     private DatagramChannel datagramChannel = DatagramChannel.open();
+    private Sender sender;
+    private Reader reader;
     private SocketAddress socketAddress;
     private StringCommandManager stringCommandManager;
+
     private String login = "";
     private String password = "";
-
     private CommandList[] commandLists = {
             CommandList.HELP,
             CommandList.INFO,
@@ -46,62 +52,26 @@ public class SpamerWorker {
         stringCommandManager = new StringCommandManager();
     }
 
+
     public SpamerWorker(SocketAddress socketAddress) throws IOException {
         this.socketAddress = socketAddress;
-        manager = new SendReceiveManager(socketAddress, datagramChannel);
-        datagramChannel.configureBlocking(false);
+        DatagramChannel datagramChannel = DatagramChannel.open();
+        sender = new Sender(datagramChannel);
+        reader = new Reader(socketAddress, datagramChannel);
+        reader.setExecutor(this);
     }
-
-    public void startWork() throws IOException {
-        String commandString = "";
-        try (Scanner commandReader = new Scanner(System.in)) {
-            System.out.print("//: ");
-            while (!commandString.equals("exit")) {
-                if (!commandReader.hasNextLine()) {
-                    break;
-                } else {
-                    try {
-                        commandString = commandReader.nextLine();
-                        Command command = stringCommandManager.getCommandFromString(commandString);
-                        if (command != null) {
-                            if (command.getCommand() == CommandList.REG || command.getCommand() == CommandList.LOGIN) {
-                                login = command.getLogin();
-                                password = sha384(command.getPassword());
-                                command.setPassword(password);
-                            } else {
-                               continue;
-                            }
-                            manager.send(command);
-                            ServerMessage message = manager.recive();
-                            if (message != null) {
-                                if (message.getLogin())
-                                    spam();
-                                System.out.println(message.getMessage());
-                            } else System.out.println("Ответ сервера некорректен");
-                        } else {
-                            System.out.println("Команда не была отправлена.");
-                        }
-                    } catch (NullPointerException e) {
-                        System.out.println("NullPointerException! Скорее всего неверно указана дата при создании объекта.");
-                        e.printStackTrace();
-                    }
-                }
-                System.out.print("//: ");
-            }
-        } catch (InterruptedException e) {
-            System.out.println("Ошибка при попытке считать ответ от сервера.");
-        }
-    }
-
 
     public void spam() throws InterruptedException {
+
         Generator generator = new Generator();
         Random random = new Random();
+        //reader.startListening();
         Command command;
+        sender.send(new Command(CommandList.PING), socketAddress);
         while (true) {
             CommandList typeCommand = commandLists[random.nextInt(commandLists.length)];
             if (typeCommand == CommandList.PING) {
-                manager.ping(login,password);
+                ping();
                 continue;
             } else if (typeCommand == CommandList.HELP || typeCommand == CommandList.INFO || typeCommand == CommandList.SHOW ||
                     typeCommand == CommandList.CLEAR || typeCommand == CommandList.PRINT_FIELD_DESCENDING_PRICE || typeCommand == CommandList.GROUP_COUNTING_BY_COORDINATES) {
@@ -114,18 +84,40 @@ public class SpamerWorker {
                     if (!product.checkNull()) break;
                 }
                 command = new Command(typeCommand, product);
-                command.setLoginPassword(login, password);
             } else continue;
-            manager.send(command);
+            command.setLoginPassword(login, password);
+            sender.send(command, socketAddress);
             Thread.sleep(1);
-//            if (command.getCommand() == CommandList.PING) {
-//                connectionCheck();
-//            }
+
+        }
+    }
+
+    public void startWork() throws InterruptedException {
+        reader.startListening();
+        spam();
+    }
+
+
+    public long ping() {
+        return PingChecker.ping(new Command(CommandList.PING), socketAddress);
+    }
+
+    @Override
+    public void execute(byte[] data, SocketAddress inputAddress) throws IOException, ClassNotFoundException {
+
+        try (
+                ObjectInputStream objectInputStream = new ObjectInputStream(
+                        new ByteArrayInputStream(data));
+        ) {
+            ServerMessage serverMessage = (ServerMessage) objectInputStream.readObject();
+            if (serverMessage != null)
+                System.out.println(serverMessage.getMessage());
+
         }
     }
 
     public String sha384(String password) {
-        if (password == null) return password;
+        if (password == null) return null;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-384");
             byte[] messageDigest = md.digest(password.getBytes());
@@ -138,12 +130,5 @@ public class SpamerWorker {
         } catch (NoSuchAlgorithmException e) {
             return password;
         }
-    }
-
-    public long ping() {
-        return manager.ping();
-    }
-    public long ping(String login, String password) {
-        return manager.ping(login, password);
     }
 }
