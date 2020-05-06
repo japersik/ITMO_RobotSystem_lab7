@@ -13,6 +13,7 @@ import com.itmo.r3135.World.Product;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.net.SocketAddress;
@@ -28,8 +29,8 @@ public class SpamerWorker implements Executor {
     private SocketAddress socketAddress;
     private StringCommandManager stringCommandManager;
 
-    private String login = "";
-    private String password = "";
+    private String login = "daniil.marukh";
+    private String password = sha384("1");
     private CommandList[] commandLists = {
             CommandList.HELP,
             CommandList.INFO,
@@ -103,17 +104,18 @@ public class SpamerWorker implements Executor {
     }
 
     @Override
-    public void execute(byte[] data, SocketAddress inputAddress) throws IOException, ClassNotFoundException {
+    public void execute(byte[] data, SocketAddress inputAddress) {
+        try (InputStream inputStream = new ByteArrayInputStream(data);
+             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)
 
-        try (
-                ObjectInputStream objectInputStream = new ObjectInputStream(
-                        new ByteArrayInputStream(data));
         ) {
             ServerMessage serverMessage = (ServerMessage) objectInputStream.readObject();
             if (serverMessage != null)
                 System.out.println(serverMessage.getMessage());
-
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
+
     }
 
     public String sha384(String password) {
