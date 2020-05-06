@@ -20,6 +20,11 @@
     <dependencies>
         <dependency>
             <groupId>r3135</groupId>
+            <artifactId>Connector</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>r3135</groupId>
             <artifactId>WorldClasses</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

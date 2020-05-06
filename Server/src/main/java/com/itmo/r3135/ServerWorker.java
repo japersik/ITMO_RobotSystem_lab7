@@ -1,6 +1,7 @@
 package com.itmo.r3135;
 
 import com.itmo.r3135.Commands.*;
+import com.itmo.r3135.Connector.*;
 import com.itmo.r3135.SQLconnect.MailManager;
 import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
@@ -9,30 +10,29 @@ import com.itmo.r3135.System.ServerMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ServerWorker implements Mediator {
+public class ServerWorker implements Mediator, Executor {
     static final Logger logger = LogManager.getLogger("ServerWorker");
+    ExecutorService executePool = Executors.newFixedThreadPool(8);
+    ExecutorService sendPool = Executors.newFixedThreadPool(8);
     private int port;
-    private DatagramSocket socket;
+    // private DatagramSocket socket;
     private DataManager dataManager;
     private Sender sender;
     private Reader reader;
-
-    private SQLManager sqlManager;
-    ExecutorService executePool = Executors.newFixedThreadPool(8);
-    ExecutorService sendPool = Executors.newFixedThreadPool(8);
-
     private AbstractCommand loadCollectionCommand;
     private AbstractCommand addCommand;
     private AbstractCommand showCommand;
-    private AbstractCommand updeteIdCommand;
+    private AbstractCommand updateIdCommand;
     private AbstractCommand helpCommand;
     private AbstractCommand removeByIdCommand;
     private AbstractCommand groupCountingByCoordinatesCommand;
@@ -50,7 +50,7 @@ public class ServerWorker implements Mediator {
         dataManager = new DataManager();
         addCommand = new AddCommand(dataManager, this);
         showCommand = new ShowCommand(dataManager, this);
-        updeteIdCommand = new UpdeteIdCommand(dataManager, this);
+        updateIdCommand = new UpdeteIdCommand(dataManager, this);
         helpCommand = new HelpCommand(dataManager, this);
         removeByIdCommand = new RemoveByIdCommand(dataManager, this);
         groupCountingByCoordinatesCommand = new GroupCountingByCoordinatesCommand(dataManager, this);
@@ -74,7 +74,7 @@ public class ServerWorker implements Mediator {
 
     //метод инициализации базы Данных
     public boolean SQLInit(String host, int port, String dataBaseName, String user, String password) {
-        sqlManager = new SQLManager();
+        SQLManager sqlManager = new SQLManager();
         boolean isConnect = sqlManager.initDatabaseConnection(host, port, dataBaseName, user, password);
         boolean isInit = false;
         if (isConnect) isInit = sqlManager.initTables();
@@ -92,20 +92,20 @@ public class ServerWorker implements Mediator {
     }
 
 
-    public void startWork() throws SocketException {
+    public void startWork() throws IOException {
         logger.info("Server start.");
-        socket = new DatagramSocket(port);
-        sender = new Sender(socket);
-        reader = new Reader(socket);
+        DatagramSocket datagramSocket = new DatagramSocket(port);
+        sender = new Sender(datagramSocket);
+        reader = new Reader(new InetSocketAddress(port), datagramSocket);
         logger.info("Load collection.");
         loadCollectionCommand.activate(new Command(CommandList.LOAD));
         logger.info("Server started on port " + port + ".");
         Thread keyBoard = new Thread(this::keyBoardWork);
-        Thread datagramm = new Thread(this::datagrammWork);
+        Thread datagram = new Thread(this::listerine);
         keyBoard.setDaemon(false);
-        datagramm.setDaemon(true);
+        datagram.setDaemon(true);
         keyBoard.start();
-        datagramm.start();
+        datagram.start();
     }
 
     public void keyBoardWork() {
@@ -131,16 +131,20 @@ public class ServerWorker implements Mediator {
         }
     }
 
-    public void datagrammWork() {
-        while (true) {
-            try {
-                Command command = reader.nextCommand();
-                logger.info("New command " + command.getCommand() +
-                        " from " + reader.getInput().getSocketAddress() + ". User: " + command.getLogin() + ".");
-                threadProcessing(command, reader.getInput().getSocketAddress());
-            } catch (IOException e) {
-                logger.error("Error in receive-send of command!!!" + e);
-            }
+    public void listerine() {
+        reader.setExecutor(this);
+        reader.datagramRead();
+    }
+
+    @Override
+    public void execute(byte[] data, SocketAddress inputAddress) {
+        try (ObjectInputStream objectInputStream = new ObjectInputStream(
+                new ByteArrayInputStream(data));) {
+            Command command = (Command) objectInputStream.readObject();
+            threadProcessing(command, inputAddress);
+        } catch (IOException | ClassNotFoundException e) {
+            logger.error("Deserialization error!");
+
         }
     }
 
@@ -154,23 +158,21 @@ public class ServerWorker implements Mediator {
 
     private void threadSend(ServerMessage message, SocketAddress inputAddress) {
         sendPool.execute(() -> {
-            try {
-                logger.info("Sending server message to " + inputAddress + ".");
-                sender.send(message, inputAddress);
-            } catch (IOException | InterruptedException e) {
-                logger.error("Error in send of message on " + inputAddress + "!!!");
-            }
+            logger.info("Sending server message to " + inputAddress + ".");
+            sender.send(message, inputAddress);
         });
     }
 
+
     @Override
     public ServerMessage processing(Command command) {
+        System.out.println(command.getCommand());
         if (command.getCommand() == CommandList.REG) {
             return regCommand.activate(command);
-        }
-        //Если это первое сообщение от пользователя
-        else if (command.getPassword() == null & command.getLogin() == null) {
-            return new ServerMessage("Good connect. Please write your's login and password!\n " +
+        } else if (command.getCommand() == CommandList.PING) {
+            if (dataManager.getSqlManager().checkAccount(command))
+                return new ServerMessage("Good connect and login!", true);
+            else return new ServerMessage("Good connect. Please write your's login and password!\n " +
                     "Command login: 'login [email/name] [password]'\n" +
                     "Command registration: 'reg [email] [password]'", false);
         } else if (!dataManager.getSqlManager().checkAccount(command)) {
@@ -192,7 +194,7 @@ public class ServerWorker implements Mediator {
             try {
                 switch (command.getCommand()) {
                     case LOGIN:
-                        return new ServerMessage("Good connect. Hello from server!");
+                        return new ServerMessage("Good login!");
                     case HELP:
                         return helpCommand.activate(command);
                     case INFO:
@@ -202,7 +204,7 @@ public class ServerWorker implements Mediator {
                     case ADD:
                         return addCommand.activate(command);
                     case UPDATE:
-                        return updeteIdCommand.activate(command);
+                        return updateIdCommand.activate(command);
                     case REMOVE_BY_ID:
                         return removeByIdCommand.activate(command);
                     case CLEAR:

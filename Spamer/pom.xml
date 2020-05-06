@@ -31,12 +31,6 @@
         </dependency>
         <dependency>
             <groupId>r3135</groupId>
-            <artifactId>Client</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>r3135</groupId>
             <artifactId>WorldClasses</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>

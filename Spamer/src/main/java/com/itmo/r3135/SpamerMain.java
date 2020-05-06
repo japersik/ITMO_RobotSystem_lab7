@@ -12,7 +12,7 @@ public class SpamerMain {
 
         Scanner input = new Scanner(System.in);
         while (true) {
-           System.out.println("Для начала спам-атаки ведите адрес сервера в формате \"адрес:порт\" или 'exit' для завершенеия программы.");
+            System.out.println("Для начала спам-атаки ведите адрес сервера в формате \"адрес:порт\" или 'exit' для завершенеия программы.");
             System.out.print("//: ");
             if (!input.hasNextLine()) {
                 break;
@@ -28,9 +28,9 @@ public class SpamerMain {
                     SocketAddress socketAddress = new InetSocketAddress(addres, port);
                     System.out.println("Запуск прошёл успешно, Потр: " + port + ". Адрес: " + socketAddress);
                     SpamerWorker worker = new SpamerWorker(socketAddress);
-                    if (worker.connectionCheck()) {
-                     worker.spam();
-                        //   worker.startWork();
+                    if (worker.ping() != -1) {
+                        //worker.spam();
+                        worker.startWork();
                         break;
                     }
                     ;
@@ -40,8 +40,10 @@ public class SpamerMain {
                     System.out.println("Адрес введён некорректно.");
                 } catch (PortUnreachableException e) {
                     System.out.println("Похоже, сервер по этому адрусе недоступен");
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     System.out.println(e);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
 
