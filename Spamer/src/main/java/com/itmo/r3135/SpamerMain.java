@@ -33,7 +33,7 @@ public class SpamerMain {
                         worker.startWork();
                         break;
                     }
-                    ;
+
                 } catch (NumberFormatException e) {
                     System.out.println("Ошибка в записи номера порта.");
                 } catch (IndexOutOfBoundsException | UnresolvedAddressException e) {
@@ -42,14 +42,11 @@ public class SpamerMain {
                     System.out.println("Похоже, сервер по этому адрусе недоступен");
                 } catch (IOException e) {
                     System.out.println(e);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
 
         }
         System.out.println("Работа программы завершена.");
-        System.exit(0);
     }
 }
 

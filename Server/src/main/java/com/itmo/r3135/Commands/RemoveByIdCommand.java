@@ -37,9 +37,10 @@ public class RemoveByIdCommand extends AbstractCommand {
             int id = command.getIntValue();
             try {
                 PreparedStatement statement = dataManager.getSqlManager().getConnection().prepareStatement(
-                        "delete from products where id = ? returning products.id"
+                        "delete from products where user_id = ? and id = ? returning products.id"
                 );
-                statement.setInt(1, id);
+                statement.setInt(1, userId);
+                statement.setInt(2, id);
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next())
                     products.removeAll((products.parallelStream().filter(product -> product.getId() == id)

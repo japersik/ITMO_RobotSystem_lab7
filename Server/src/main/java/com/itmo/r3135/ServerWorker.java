@@ -22,8 +22,8 @@ import java.util.concurrent.Executors;
 
 public class ServerWorker implements Mediator, Executor {
     static final Logger logger = LogManager.getLogger("ServerWorker");
-    ExecutorService executePool = Executors.newFixedThreadPool(8);
-    ExecutorService sendPool = Executors.newFixedThreadPool(8);
+    ExecutorService executePool = Executors.newFixedThreadPool(30);
+    ExecutorService sendPool = Executors.newFixedThreadPool(30);
     private int port;
     // private DatagramSocket socket;
     private DataManager dataManager;
