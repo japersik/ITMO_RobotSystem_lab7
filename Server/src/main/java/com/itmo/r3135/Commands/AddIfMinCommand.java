@@ -24,11 +24,12 @@ public class AddIfMinCommand extends AbstractCommand {
      */
     @Override
     public ServerMessage activate(Command command) {
+        Product addProduct = command.getProduct();
+
         dataManager.getLock().writeLock().lock();
         HashSet<Product> products = dataManager.getProducts();
         try {
             if (products.size() != 0) {
-                Product addProduct = command.getProduct();
                 Product minElem = products.stream().min(Product::compareTo).get();
                 dataManager.getLock().writeLock().unlock();
                 if (addProduct.compareTo(minElem) < 0) {

@@ -27,26 +27,27 @@ public class AddCommand extends AbstractCommand {
     public ServerMessage activate(Command command) {
         int userId = dataManager.getSqlManager().getUserId(command.getLogin());
         if (userId == 0) return new ServerMessage("Ошибка авторизации!");
-        dataManager.getLock().writeLock().lock();
-        HashSet<Product> products = dataManager.getProducts();
         Product addProduct = command.getProduct();
         addProduct.setCreationDate(java.time.LocalDateTime.now());
         if (addProduct.checkNull()) {
-            dataManager.getLock().writeLock().unlock();
             return new ServerMessage(Product.printRequest());
         } else {
             int id = addObjSql(addProduct, userId);
             addProduct.setUserName(command.getLogin());
             addProduct.setId(id);
             if (id == -1) return new ServerMessage("Ошибка добавления элеемнта в базу данных");
-            else if (products.add(addProduct)) {
-                dataManager.updateDateChange();
-                dataManager.getLock().writeLock().unlock();
-                return new ServerMessage("Элемент успешно добавлен.");
-            } else {
-                dataManager.getLock().writeLock().unlock();
-                return new ServerMessage("Ошибка добавления элеемнта в коллекцию. Но. В базу он добавлени" +
-                        "Сообщите обэном случае в техническую поддержку.('info')");
+            else {
+                dataManager.getLock().writeLock().lock();
+                HashSet<Product> products = dataManager.getProducts();
+                if (products.add(addProduct)) {
+                    dataManager.updateDateChange();
+                    dataManager.getLock().writeLock().unlock();
+                    return new ServerMessage("Элемент успешно добавлен.");
+                } else {
+                    dataManager.getLock().writeLock().unlock();
+                    return new ServerMessage("Ошибка добавления элеемнта в коллекцию. Но. В базу он добавлени" +
+                            "Сообщите обэном случае в техническую поддержку.('info')");
+                }
             }
         }
     }

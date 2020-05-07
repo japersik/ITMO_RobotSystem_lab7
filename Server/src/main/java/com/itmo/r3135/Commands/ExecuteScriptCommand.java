@@ -24,8 +24,9 @@ public class ExecuteScriptCommand extends AbstractCommand {
     public ServerMessage activate(Command command) {
         dataManager.getLock().writeLock().lock();
         HashSet<Product> oldProducts = new HashSet<>(dataManager.getProducts());
+        dataManager.getLock().writeLock().unlock();
+
         try {
-            dataManager.getLock().writeLock().unlock();
             for (Command executeCommand : command.getEcexuteCommands()) {
                 executeCommand.setLoginPassword(command.getLogin(), command.getPassword());
                 serverWorker.processing(executeCommand);

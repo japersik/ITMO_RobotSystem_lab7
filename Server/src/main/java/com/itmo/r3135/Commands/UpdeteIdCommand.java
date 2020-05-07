@@ -4,7 +4,6 @@ import com.google.gson.JsonSyntaxException;
 import com.itmo.r3135.DataManager;
 import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
-import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Person;
 import com.itmo.r3135.World.Product;
@@ -15,7 +14,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.ZoneOffset;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны update_id
@@ -32,32 +30,29 @@ public class UpdeteIdCommand extends AbstractCommand {
     public ServerMessage activate(Command command) {
         int userId = dataManager.getSqlManager().getUserId(command.getLogin());
         if (userId == -1) return new ServerMessage("Ошибка авторизации!");
-        dataManager.getLock().writeLock().lock();
-        HashSet<Product> products = dataManager.getProducts();
         try {
             int id = command.getIntValue();
             Product newProduct = command.getProduct();
-            int startSize = products.size();
             if (newProduct.checkNull()) {
-                dataManager.getLock().writeLock().unlock();
                 return new ServerMessage("Элемент не удовлетворяет требованиям коллекции");
             } else {
-                if (updateProductSQL(newProduct, id) != -1)
+                if (updateProductSQL(newProduct, id) != -1) {
+                    HashSet<Product> products = dataManager.getProducts();
                     for (Product productFoUpdate : products) {
-                        if (productFoUpdate.getId() == id) productFoUpdate.updateProduct(newProduct);
-                        return new ServerMessage("Элемент успешно обновлён.");
-                    } else {
+                        if (productFoUpdate.getId() == id)
+                            productFoUpdate.updateProduct(newProduct);
                         dataManager.getLock().writeLock().unlock();
-                        return
-                            new ServerMessage("При замене элементов что-то пошло не так." +
-                                    " Возможно, объект Вам не принаджежит");
-            }}
+                        return new ServerMessage("Элемент успешно обновлён.");
+                    }
+                    return new ServerMessage("Как такое могло произойти?! В базе обновлён, а в коллекци - нет?!");
+                } else
+                    return new ServerMessage("При замене элементов что-то пошло не так.\n" +
+                            " Возможно, объект Вам не принаджежит");
+            }
         } catch (JsonSyntaxException ex) {
             dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Возникла ошибка при замене элемента");
         }
-        dataManager.getLock().writeLock().unlock();
-        return null;
     }
 
     private int updateProductSQL(Product product, int id) {
