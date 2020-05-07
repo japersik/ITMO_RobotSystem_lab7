@@ -10,16 +10,14 @@ import java.util.HashSet;
 
 /**
  * Класс обработки комадны execute_script
+ * Выполняет скрипт полученный в виде листа комманд
  */
 public class ExecuteScriptCommand extends AbstractCommand {
     public ExecuteScriptCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Выполняет скрипт записанный в файле.
-     * В программе стоит ограничение на выполнение рекурсивных итераций в цикле - 20 вложенных циклов. Мы не рекомендуем вызывать скрипты в самом скрипте.
-     */
+
     @Override
     public ServerMessage activate(Command command) {
         dataManager.getLock().writeLock().lock();

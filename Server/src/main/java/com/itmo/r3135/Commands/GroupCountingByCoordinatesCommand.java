@@ -1,4 +1,3 @@
-
 package com.itmo.r3135.Commands;
 
 import com.itmo.r3135.DataManager;
@@ -11,6 +10,7 @@ import java.util.HashSet;
 
 /**
  * Класс обработки комадны group_counting_by_coordinates
+ * Группирует элементы коллекции по кординатам на 4 четверти.
  */
 public class GroupCountingByCoordinatesCommand extends AbstractCommand {
 
@@ -18,9 +18,6 @@ public class GroupCountingByCoordinatesCommand extends AbstractCommand {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Группирует элементы коллекции по кординатам на 4 четверти.
-     */
     @Override
     public ServerMessage activate(Command command) {
         dataManager.getLock().readLock().lock();

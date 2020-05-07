@@ -15,15 +15,14 @@ import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны clear
+ * Удаляет все элементы пользователя
  */
 public class ClearCommand extends AbstractCommand {
     public ClearCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Очищает коллекцию.
-     */
+
     @Override
     public ServerMessage activate(Command command) {
         int userId = dataManager.getSqlManager().getUserId(command.getLogin());

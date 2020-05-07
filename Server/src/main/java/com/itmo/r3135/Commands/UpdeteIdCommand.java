@@ -16,16 +16,14 @@ import java.time.ZoneOffset;
 import java.util.HashSet;
 
 /**
- * Класс обработки комадны update_id
+ * Класс обработки комадны update
+ * Заменяет в колеекции элемент с заданным id.
  */
 public class UpdeteIdCommand extends AbstractCommand {
     public UpdeteIdCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Заменяет в колеекции элемент с определенным id.
-     */
     @Override
     public ServerMessage activate(Command command) {
         int userId = dataManager.getSqlManager().getUserId(command.getLogin());

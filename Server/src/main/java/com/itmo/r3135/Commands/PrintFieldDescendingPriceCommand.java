@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны print_field_descending_price
+ * Передаёт коллекцию, отсортированную по цене в порядке убывания
  */
 public class PrintFieldDescendingPriceCommand extends AbstractCommand {
 
@@ -20,9 +21,6 @@ public class PrintFieldDescendingPriceCommand extends AbstractCommand {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Выводит коллекцию, отсортированную по цене в порядке убывания.
-     */
     @Override
     public ServerMessage activate(Command command) {
         dataManager.getLock().readLock().lock();

@@ -13,15 +13,14 @@ import java.util.HashSet;
 
 /**
  * Класс обработки комадны add_if_min
+ * Добавляет новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции.
+ *
  */
 public class AddIfMinCommand extends AbstractCommand {
     public AddIfMinCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Добавляет новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции.
-     */
     @Override
     public ServerMessage activate(Command command) {
         Product addProduct = command.getProduct();

@@ -8,7 +8,6 @@ import com.itmo.r3135.World.Product;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.stream.Collectors;

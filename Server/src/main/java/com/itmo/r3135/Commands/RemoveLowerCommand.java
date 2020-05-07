@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны remove_lower
+ * Удаляет из коллекции все элементы пользомавателя меньшие, чем заданный
  */
 public class RemoveLowerCommand extends AbstractCommand {
 
@@ -23,9 +24,6 @@ public class RemoveLowerCommand extends AbstractCommand {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Удаляет из коллекции все элементы, меньшие, чем заданный.
-     */
     @Override
 
     public ServerMessage activate(Command command) {
