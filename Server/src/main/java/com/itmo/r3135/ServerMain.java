@@ -39,7 +39,7 @@ public class ServerMain {
         Properties properties = new Properties();
 
         //Добавить проверку файла на пригодность
-        try (InputStream inputStream = new FileInputStream(propFileName);) {
+        try (InputStream inputStream = new FileInputStream(propFileName)) {
             logger.info("Loading setting from " + propFile.getAbsolutePath() + ".");
             properties.load(inputStream);
             logger.info("Config from file:" + properties.toString());
@@ -62,14 +62,17 @@ public class ServerMain {
             ServerWorker worker = new ServerWorker(port);
 
             if (modeAuth) {
-                mailInit = worker.mailInit(mailUser,mailPassword,mailHost,mailPort,smtpAuth);
+                mailInit = worker.mailInit(mailUser, mailPassword, mailHost, mailPort, smtpAuth);
             }
             if (worker.SQLInit(dbHost, dbPort, dbName, dbUser, dbPassword) && mailInit)
                 try {
                     worker.startWork();
                 } catch (BindException e) {
                     logger.error("The port " + properties.getProperty("port") + " is busy.");
-                }else {logger.fatal("INITIALISATION ERROR!");}
+                }
+            else {
+                logger.fatal("INITIALISATION ERROR!");
+            }
         }
     }
 

@@ -47,7 +47,7 @@ public class Generator {
     }
 
     private static String nextPartNumber() {
-        String number = new String();
+        String number = "";
         for (int i = 0; i < 22; i++) {
             number = number + (chs[random.nextInt(chs.length)]);
         }

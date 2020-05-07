@@ -12,18 +12,18 @@ import java.util.TreeMap;
  * Класс для извлечения команд из скрипта для последующего выполнения.
  */
 public class VirtualStack {
-    private ArrayList<File> activeScriptList;
-    private ArrayList<String> commandStack;
+    private final ArrayList<File> activeScriptList;
+    private final ArrayList<String> commandStack;
     private File currentFile;
-    private ArrayList<String> lastRemove;
-    private TreeMap<ArrayList<File>, String> derevo;
+    private final ArrayList<String> lastRemove;
+    private final TreeMap<ArrayList<File>, String> derevo;
 
 
     {
         activeScriptList = new ArrayList<>();
         commandStack = new ArrayList<>(100000);
         lastRemove = new ArrayList<>();
-        derevo = new  TreeMap<>();
+        derevo = new TreeMap<>();
     }
 
     /**
@@ -42,7 +42,7 @@ public class VirtualStack {
                 commandStack.remove(commandStack.get(i));
                 while (getExecuteFromLastFile(activeScriptList.get(activeScriptList.size() - 1)).equals(lastRemove)) {
                     lastRemove.clear();
-                    lastRemove.add(activeScriptList.get(activeScriptList.size()-1).getAbsolutePath());
+                    lastRemove.add(activeScriptList.get(activeScriptList.size() - 1).getAbsolutePath());
                     activeScriptList.remove(activeScriptList.size() - 1);
 
                 }
@@ -104,8 +104,7 @@ public class VirtualStack {
         if (nextFilePath != null) {
             File nextFile = new File(nextFilePath);
             if (!nextFile.isAbsolute()) {
-                String newExecute = "execute_script " + currentFile.getAbsolutePath().replace(currentFile.getName(), nextFile.getPath());
-                return newExecute;
+                return "execute_script " + currentFile.getAbsolutePath().replace(currentFile.getName(), nextFile.getPath());
             }
         }
         return nextExecute;
@@ -142,8 +141,7 @@ public class VirtualStack {
         if (command != null) {
             String[] trimScriptCommand;
             trimScriptCommand = command.trim().split(" ", 2);
-            if (trimScriptCommand[0].equals("execute_script"))
-                return true;
+            return trimScriptCommand[0].equals("execute_script");
         }
         return false;
     }

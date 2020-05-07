@@ -43,7 +43,7 @@ public class ClientMain {
                 } catch (PortUnreachableException e) {
                     System.out.println("Похоже, сервер по этому адрусе недоступен");
                 } catch (IOException e) {
-                    System.out.println("Не знаю как, но IOException. Обратитесь в тех.поддержку, которой нет." +e);
+                    System.out.println("Не знаю как, но IOException. Обратитесь в тех.поддержку, которой нет." + e);
                 }
             }
         }

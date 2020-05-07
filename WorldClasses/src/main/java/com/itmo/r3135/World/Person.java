@@ -59,8 +59,8 @@ public class Person implements Serializable {
     public String toString() {
         return
                 "Имя: " + name +
-                ", Дата рождения: " + birthday.format(DateTimeFormatter.ISO_DATE) +
-                ", Цвет глаз: " + eyeColor +
-                ", Цвет волос: " + hairColor;
+                        ", Дата рождения: " + birthday.format(DateTimeFormatter.ISO_DATE) +
+                        ", Цвет глаз: " + eyeColor +
+                        ", Цвет волос: " + hairColor;
     }
 }

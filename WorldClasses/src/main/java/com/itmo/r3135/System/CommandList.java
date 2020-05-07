@@ -20,7 +20,6 @@ public enum CommandList implements Serializable {
     PRINT_FIELD_DESCENDING_PRICE("print_field_descending_price"),
 
     PING("ping"),
- //   CHECK("check_connection"),
     CODE("code"),
     LOGIN("login"),
     REG("reg");

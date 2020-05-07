@@ -6,18 +6,11 @@ import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.World.Product;
 
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class StringCommandManager {
 
-    private Gson gson;
-
-    {
-        gson = new Gson();
-    }
+    private final Gson gson = new Gson();
 
     public StringCommandManager() {
     }
@@ -35,11 +28,11 @@ public class StringCommandManager {
                         break;
                     case "login":
                         command = new Command(CommandList.LOGIN);
-                        command.setLoginPassword(trimCommand[1].split(" ",2)[0],trimCommand[1].split(" ",2)[1]);
+                        command.setLoginPassword(trimCommand[1].split(" ", 2)[0], trimCommand[1].split(" ", 2)[1]);
                         break;
                     case "reg":
                         command = new Command(CommandList.REG);
-                        command.setLoginPassword(trimCommand[1].split(" ",2)[0],trimCommand[1].split(" ",2)[1]);
+                        command.setLoginPassword(trimCommand[1].split(" ", 2)[0], trimCommand[1].split(" ", 2)[1]);
                         break;
                     case "":
                         System.out.println("Команда отсутствует");
