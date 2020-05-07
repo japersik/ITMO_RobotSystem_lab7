@@ -1,6 +1,5 @@
 package com.itmo.r3135.Connector;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 
 /**
@@ -8,7 +7,7 @@ import java.net.SocketAddress;
  */
 public interface Executor {
     /**
-     * Вызывается для обработки данных.
+     * Вызывается для обработки принятых данных.
      *
      * @param data         данные
      * @param inputAddress адрес отправителя

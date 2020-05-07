@@ -4,79 +4,61 @@ import com.itmo.r3135.SQLconnect.MailManager;
 import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.World.Product;
 
-import java.io.File;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DataManager {
-    private File jsonFile;
-
+    private final Date dateInitialization = new Date();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private HashSet<Product> products = new HashSet<>();
     private SQLManager sqlManager;
-    private Date dateInitialization = new Date();
     private Date dateSave = new Date();
     private Date dateChange = new Date();
-    private ReadWriteLock lock = new ReentrantReadWriteLock();
     private MailManager mailManager;
 
-    public void setSqlManager(SQLManager sqlManager) {
-        this.sqlManager = sqlManager;
-    }
-
-    public void setMailManager(MailManager mailManager) {
-        this.mailManager = mailManager;
+    public DataManager() {
     }
 
     public MailManager getMailManager() {
         return mailManager;
     }
 
+    public void setMailManager(MailManager mailManager) {
+        this.mailManager = mailManager;
+    }
+
     public SQLManager getSqlManager() {
         return sqlManager;
+    }
+
+    public void setSqlManager(SQLManager sqlManager) {
+        this.sqlManager = sqlManager;
     }
 
     public ReadWriteLock getLock() {
         return lock;
     }
 
-    public DataManager(File jsonFile) {
-        this.jsonFile = jsonFile;
-    }
-
-
-    public DataManager() {
-        this(null);
-    }
-
     public Date getDateChange() {
         return dateChange;
-    }
-
-    public File getJsonFile() {
-        return jsonFile;
     }
 
     public HashSet<Product> getProducts() {
         return products;
     }
 
+    public void setProducts(HashSet<Product> products) {
+        this.products = products;
+    }
+
     public void uptadeDateChange() {
         this.dateChange = new Date();
     }
 
-    public void setJsonFile(File jsonFile) {
-        this.jsonFile = jsonFile;
-    }
-
-
     public void updateDateSave() {
         this.dateSave = new Date();
-    }
-
-    public void setProducts(HashSet<Product> products) {
-        this.products = products;
     }
 
     @Override

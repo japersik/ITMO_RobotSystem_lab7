@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class ServerMessage implements Serializable {
-    private String message;
+    private final String message;
     private ArrayList<Product> products;
     private Boolean login;
 
@@ -18,13 +18,13 @@ public class ServerMessage implements Serializable {
         this.message = message;
     }
 
-    public ServerMessage(String message, ArrayList<Product>products){
+    public ServerMessage(String message, ArrayList<Product> products) {
         this.message = message;
         this.products = products;
 
     }
 
-    public ServerMessage(String message, Boolean login){
+    public ServerMessage(String message, Boolean login) {
         this.message = message;
         this.login = login;
     }

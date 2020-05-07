@@ -1,7 +1,9 @@
 package com.itmo.r3135;
 
 import com.itmo.r3135.Commands.*;
-import com.itmo.r3135.Connector.*;
+import com.itmo.r3135.Connector.Executor;
+import com.itmo.r3135.Connector.Reader;
+import com.itmo.r3135.Connector.Sender;
 import com.itmo.r3135.SQLconnect.MailManager;
 import com.itmo.r3135.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
@@ -22,29 +24,28 @@ import java.util.concurrent.Executors;
 
 public class ServerWorker implements Mediator, Executor {
     static final Logger logger = LogManager.getLogger("ServerWorker");
-    ExecutorService executePool = Executors.newFixedThreadPool(30);
-    ExecutorService sendPool = Executors.newFixedThreadPool(30);
-    private int port;
-    // private DatagramSocket socket;
-    private DataManager dataManager;
+    private final int port;
+    private final DataManager dataManager;
+    private final AbstractCommand loadCollectionCommand;
+    private final AbstractCommand addCommand;
+    private final AbstractCommand showCommand;
+    private final AbstractCommand updateIdCommand;
+    private final AbstractCommand helpCommand;
+    private final AbstractCommand removeByIdCommand;
+    private final AbstractCommand groupCountingByCoordinatesCommand;
+    private final AbstractCommand addIfMinCommand;
+    private final AbstractCommand clearCommand;
+    private final AbstractCommand printFieldDescendingPriceCommand;
+    private final AbstractCommand filterContainsNameCommand;
+    private final AbstractCommand removeLowerCommand;
+    private final AbstractCommand removeGreaterCommand;
+    private final AbstractCommand executeScriptCommand;
+    private final AbstractCommand infoCommand;
+    private final AbstractCommand regCommand;
+    private ExecutorService executePool = Executors.newFixedThreadPool(30);
+    private ExecutorService sendPool = Executors.newFixedThreadPool(30);
     private Sender sender;
     private Reader reader;
-    private AbstractCommand loadCollectionCommand;
-    private AbstractCommand addCommand;
-    private AbstractCommand showCommand;
-    private AbstractCommand updateIdCommand;
-    private AbstractCommand helpCommand;
-    private AbstractCommand removeByIdCommand;
-    private AbstractCommand groupCountingByCoordinatesCommand;
-    private AbstractCommand addIfMinCommand;
-    private AbstractCommand clearCommand;
-    private AbstractCommand printFieldDescendingPriceCommand;
-    private AbstractCommand filterContainsNameCommand;
-    private AbstractCommand removeLowerCommand;
-    private AbstractCommand removeGreaterCommand;
-    private AbstractCommand executeScriptCommand;
-    private AbstractCommand infoCommand;
-    private AbstractCommand regCommand;
 
     {
         dataManager = new DataManager();
@@ -109,7 +110,7 @@ public class ServerWorker implements Mediator, Executor {
     }
 
     public void keyBoardWork() {
-        try (Scanner input = new Scanner(System.in);) {
+        try (Scanner input = new Scanner(System.in)) {
             input.delimiter();
             while (true) {
                 System.out.print("//: ");
@@ -139,7 +140,7 @@ public class ServerWorker implements Mediator, Executor {
     @Override
     public void execute(byte[] data, SocketAddress inputAddress) {
         try (ObjectInputStream objectInputStream = new ObjectInputStream(
-                new ByteArrayInputStream(data));) {
+                new ByteArrayInputStream(data))) {
             Command command = (Command) objectInputStream.readObject();
             threadProcessing(command, inputAddress);
         } catch (IOException | ClassNotFoundException e) {

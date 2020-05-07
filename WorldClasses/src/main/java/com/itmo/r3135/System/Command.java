@@ -6,8 +6,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class Command implements Serializable {
+    private final CommandList command;
     private ArrayList<Command> ecexuteCommands;
-    private CommandList command;
     private Product product;
     private String string;
     private int intValue;
@@ -17,28 +17,6 @@ public class Command implements Serializable {
     {
         login = "";
         password = "";
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
-
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setLoginPassword(String login ,String password) {
-        this.login = login;
-        this.password = password;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     public Command(CommandList command) {
@@ -65,9 +43,31 @@ public class Command implements Serializable {
         this.command = command;
         this.intValue = intValue;
     }
-    public Command(CommandList command, ArrayList<Command> ecexuteCommands){
+
+    public Command(CommandList command, ArrayList<Command> ecexuteCommands) {
         this.command = command;
         this.ecexuteCommands = ecexuteCommands;
+    }
+
+    public void setLoginPassword(String login, String password) {
+        this.login = login;
+        this.password = password;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public ArrayList<Command> getEcexuteCommands() {
