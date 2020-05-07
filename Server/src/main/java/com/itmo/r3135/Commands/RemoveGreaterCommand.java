@@ -16,15 +16,13 @@ import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны remove_greater
+ * Удаляет из коллекции все элементы пользователя, превышающие заданный.
  */
 public class RemoveGreaterCommand extends AbstractCommand {
     public RemoveGreaterCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Удаляет из коллекции все элементы, превышающие заданный.
-     */
     @Override
     public ServerMessage activate(Command command) {
         int userId = dataManager.getSqlManager().getUserId(command.getLogin());

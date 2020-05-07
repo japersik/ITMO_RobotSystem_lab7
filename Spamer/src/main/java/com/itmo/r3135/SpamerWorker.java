@@ -21,6 +21,7 @@ import java.nio.channels.DatagramChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
+import java.util.Scanner;
 
 public class SpamerWorker implements Executor {
     private DatagramChannel datagramChannel = DatagramChannel.open();
@@ -28,26 +29,28 @@ public class SpamerWorker implements Executor {
     private Reader reader;
     private SocketAddress socketAddress;
     private StringCommandManager stringCommandManager;
-
-    private String login = "daniil.marukh";
-    private String password = sha384("1");
+    private boolean isLogin;
+    private boolean isSpam;
+    private String login = "";
+    private String password = "";
     private CommandList[] commandLists = {
-            CommandList.HELP,
-            CommandList.INFO,
+//            CommandList.HELP,
+//            CommandList.INFO,
             CommandList.ADD,
-            CommandList.SHOW,
+            //    CommandList.SHOW,
             CommandList.UPDATE,
             CommandList.REMOVE_BY_ID,
-            //CommandList.CLEAR,
-            CommandList.EXECUTE_SCRIPT,
+//            CommandList.CLEAR,
+//            CommandList.EXECUTE_SCRIPT,
             CommandList.ADD_IF_MIN,
-            //CommandList.REMOVE_GREATER,
-            // CommandList.REMOVE_LOWER,
-            CommandList.GROUP_COUNTING_BY_COORDINATES,
-            CommandList.FILTER_CONTAINS_NAME,
-            CommandList.PRINT_FIELD_DESCENDING_PRICE,
+            //  CommandList.REMOVE_GREATER,
+            //  CommandList.REMOVE_LOWER,
+            //  CommandList.GROUP_COUNTING_BY_COORDINATES,
+            //  CommandList.FILTER_CONTAINS_NAME,
+            //  CommandList.PRINT_FIELD_DESCENDING_PRICE,
             CommandList.PING
     };
+
 
     {
         stringCommandManager = new StringCommandManager();
@@ -62,45 +65,94 @@ public class SpamerWorker implements Executor {
         reader.setExecutor(this);
     }
 
-    public void spam() throws InterruptedException {
-
+    public void spam() {
         Generator generator = new Generator();
         Random random = new Random();
-        //reader.startListening();
         Command command;
-        sender.send(new Command(CommandList.PING), socketAddress);
-        while (true) {
-            CommandList typeCommand = commandLists[random.nextInt(commandLists.length)];
-            if (typeCommand == CommandList.PING) {
-                ping();
-                continue;
-            } else if (typeCommand == CommandList.HELP || typeCommand == CommandList.INFO || typeCommand == CommandList.SHOW ||
-                    typeCommand == CommandList.CLEAR || typeCommand == CommandList.PRINT_FIELD_DESCENDING_PRICE || typeCommand == CommandList.GROUP_COUNTING_BY_COORDINATES) {
-                command = new Command(typeCommand);
-            } else if (typeCommand == CommandList.ADD || typeCommand == CommandList.ADD_IF_MIN || typeCommand == CommandList.REMOVE_GREATER ||
-                    typeCommand == CommandList.REMOVE_LOWER) {
-                Product product;
-                while (true) {
-                    product = generator.nextProduct();
-                    if (!product.checkNull()) break;
+        try {
+            while (isLogin) {
+                CommandList typeCommand = commandLists[random.nextInt(commandLists.length)];
+                if (typeCommand == CommandList.PING || typeCommand == CommandList.HELP || typeCommand == CommandList.INFO || typeCommand == CommandList.SHOW ||
+                        typeCommand == CommandList.CLEAR || typeCommand == CommandList.PRINT_FIELD_DESCENDING_PRICE || typeCommand == CommandList.GROUP_COUNTING_BY_COORDINATES) {
+                    command = new Command(typeCommand);
+                } else if (typeCommand == CommandList.ADD || typeCommand == CommandList.ADD_IF_MIN || typeCommand == CommandList.REMOVE_GREATER ||
+                        typeCommand == CommandList.REMOVE_LOWER) {
+                    Product product;
+                    while (true) {
+                        product = generator.nextProduct();
+                        if (!product.checkNull()) break;
+                    }
+                    command = new Command(typeCommand, product);
+                } else continue;
+                command.setLoginPassword(login, password);
+                System.out.println(login);
+                System.out.println(password);
+                sender.send(command, socketAddress);
+                Thread.sleep(10);
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Спам атака была остановлена из-за" + e);
+        }
+
+        System.out.println("Спам-атака завершена!" + login + password);
+    }
+
+    public void startWork() {
+        reader.startListening();
+        isLogin = false;
+        isSpam = false;
+        Thread spamer = new Thread(this::spam);
+        spamer.setDaemon(true);
+        String commandString = "";
+        try (Scanner commandReader = new Scanner(System.in)) {
+            while (true) {
+                if (!commandReader.hasNextLine()) break;
+                System.out.print("//: ");
+                commandString = commandReader.nextLine();
+                if (isSpam) {
+                    spamer.interrupt();
+                    isSpam = false;
+                    System.out.println("Спам-атака остановлена");
                 }
-                command = new Command(typeCommand, product);
-            } else continue;
-            command.setLoginPassword(login, password);
-            sender.send(command, socketAddress);
-            Thread.sleep(1);
+                if (commandString.equals("exit"))
+                    break;
+                if (commandString.equals("spam")) {
+                    if (isLogin) {
+                        System.out.println("Спам-анака начата");
+                        spamer.start();
+                        isSpam = true;
+                    } else System.out.println("Вы не авторизованы");
+                    continue;
+                } else {
+                    try {
+                        Command command = stringCommandManager.getCommandFromString(commandString);
+                        if (command != null) {
+                            if (command.getCommand() == CommandList.REG || command.getCommand() == CommandList.LOGIN) {
+                                login = command.getLogin();
+                                password = sha384(command.getPassword());
+                                command.setPassword(password);
+                            } else {
+                                command.setLoginPassword(login, password);
+                            }
+                            sender.send(command, socketAddress);
+                        } else {
+                            System.out.println("Команда не была отправлена.");
+                        }
+                    } catch (NullPointerException e) {
+                        System.out.println("NullPointerException! Скорее всего неверно указана дата при создании объекта.");
+                        e.printStackTrace();
+                    }
+                }
+            }
 
         }
     }
 
-    public void startWork() throws InterruptedException {
-        reader.startListening();
-        spam();
-    }
-
 
     public long ping() {
-        return PingChecker.ping(new Command(CommandList.PING), socketAddress);
+        Command command = new Command(CommandList.PING);
+        command.setLoginPassword(login, password);
+        return PingChecker.ping(command, socketAddress);
     }
 
     @Override
@@ -110,8 +162,20 @@ public class SpamerWorker implements Executor {
 
         ) {
             ServerMessage serverMessage = (ServerMessage) objectInputStream.readObject();
-            if (serverMessage != null)
-                System.out.println(serverMessage.getMessage());
+            if (serverMessage != null) {
+                isLogin = serverMessage.getLogin();
+                if (!isLogin) System.out.println(serverMessage.getMessage());
+                else if (isSpam) {
+
+                } else {
+                    if (serverMessage.getMessage() != null)
+                        System.out.println(serverMessage.getMessage());
+                    if (serverMessage.getProducts() != null)
+                        for (Product p : serverMessage.getProducts()) System.out.println(p);
+                }
+
+
+            }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

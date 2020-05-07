@@ -9,10 +9,23 @@ import org.apache.logging.log4j.Logger;
 import java.sql.*;
 import java.util.Random;
 
+/**
+ * Класс для работы с базай данных
+ */
 public class SQLManager {
     static final Logger logger = LogManager.getLogger("SQLManager");
     private Connection connection;
 
+    /**
+     * Проводит подключение к базе данных
+     *
+     * @param host         Адрес для подключения к базе
+     * @param port         Порт подключения
+     * @param dataBaseName Имя базы данных
+     * @param user         Имя пользователя в базе
+     * @param password     Имя пользователя
+     * @return Статус подключения
+     */
     public boolean initDatabaseConnection(String host, int port, String dataBaseName, String user, String password) {
         logger.info("Database connect...");
 //        try {
@@ -33,6 +46,11 @@ public class SQLManager {
 
     }
 
+    /**
+     * Инициализирует таблицы в базе
+     *
+     * @return Статус инифиализации
+     */
     public boolean initTables() {
         try {
             Statement statement = connection.createStatement();
@@ -102,6 +120,12 @@ public class SQLManager {
         }
     }
 
+    /**
+     * Ищет id пользователя по заданному имени
+     *
+     * @param loginName Логин или email Пользователя
+     * @return id Пользователя или -1, если пользователь не найден
+     */
     public int getUserId(String loginName) {
         int userId = -1;
         try {
@@ -124,6 +148,13 @@ public class SQLManager {
         return setStatus(userId, "npass");
     }
 
+    /**
+     * Устанавливает Новый статус пользователя
+     *
+     * @param userId Id пользователя
+     * @param status Статус (пока доступен только reg и npass)
+     * @return
+     */
     private String setStatus(int userId, String status) {
         try {
             clearStatus(userId);
@@ -163,6 +194,11 @@ public class SQLManager {
         return null;
     }
 
+    /**
+     * Генерирует случайную строку
+     *
+     * @return Случайная строка
+     */
     private static String randomString() {
         char[] chs = "ZXCVBNMASDFGHJKLQWERTYUIOP1234567890zxcvbnmasdfghjklqwertyuiop".toCharArray();
         String number = new String();
@@ -181,6 +217,12 @@ public class SQLManager {
         return "reg".equals(getUserStatus(uderId));
     }
 
+    /**
+     * Очищает статус пользователя
+     *
+     * @param userId id вользавотеля
+     * @return Статус операции
+     */
     public boolean clearStatus(int userId) {
         try {
             Statement statement = connection.createStatement();
@@ -194,7 +236,6 @@ public class SQLManager {
     public boolean isNewPass(int uderId) {
         return "npass".equals(getUserStatus(uderId));
     }
-
 
     public boolean checkAccount(Command command) {
         try {
@@ -212,6 +253,12 @@ public class SQLManager {
         }
     }
 
+    /**
+     * Проверяет валидность email адреса
+     *
+     * @param email email для проверки
+     * @return Статус проверки
+     */
     public boolean checkEmail(String email) {
         try {
             String[] login = email.split("@");

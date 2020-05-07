@@ -13,22 +13,22 @@ import java.util.HashSet;
 
 /**
  * Класс обработки комадны add_if_min
+ * Добавляет новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции.
+ *
  */
 public class AddIfMinCommand extends AbstractCommand {
     public AddIfMinCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Добавляет новый элемент в коллекцию, если его значение меньше, чем у наименьшего элемента этой коллекции.
-     */
     @Override
     public ServerMessage activate(Command command) {
+        Product addProduct = command.getProduct();
+
         dataManager.getLock().writeLock().lock();
         HashSet<Product> products = dataManager.getProducts();
         try {
             if (products.size() != 0) {
-                Product addProduct = command.getProduct();
                 Product minElem = products.stream().min(Product::compareTo).get();
                 dataManager.getLock().writeLock().unlock();
                 if (addProduct.compareTo(minElem) < 0) {

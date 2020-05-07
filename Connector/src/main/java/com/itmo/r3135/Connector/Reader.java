@@ -168,7 +168,8 @@ public class Reader {
 
             buffer.get(infoPacket.data, 0, DATA_SIZE);
             packets.add(infoPacket);
-            updateProgress(packets.size() / (1.0 * infoPacket.size));
+            if (infoPacket.size > 5)
+                updateProgress(packets.size() / (1.0 * infoPacket.size));
 
             if (packets.size() > 0)
                 if (packets.size() >= infoPacket.size) {

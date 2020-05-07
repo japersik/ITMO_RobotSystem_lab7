@@ -12,15 +12,13 @@ import java.util.stream.Collectors;
 
 /**
  * Класс обработки комадны filter_contains_name
+ * Выводит элементы, значение поля name которых содержит заданную подстроку.
  */
 public class FilterContainsNameCommand extends AbstractCommand {
     public FilterContainsNameCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Выводит элементы, значение поля name которых содержит заданную подстроку.
-     */
     @Override
     public ServerMessage activate(Command command) {
         dataManager.getLock().readLock().lock();

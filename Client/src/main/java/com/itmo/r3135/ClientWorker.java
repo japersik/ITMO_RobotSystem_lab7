@@ -22,7 +22,6 @@ import java.util.Scanner;
 
 
 public class ClientWorker implements Executor {
-    //  private SendReceiveManager manager;
     private DatagramChannel datagramChannel = DatagramChannel.open();
     private Sender sender;
     private Reader reader;

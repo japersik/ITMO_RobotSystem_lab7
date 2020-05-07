@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 /**
  * Класс обработки комадны show
+ * Передаёт все элементы коллекции
  */
 
 public class ShowCommand extends AbstractCommand {
@@ -19,7 +20,6 @@ public class ShowCommand extends AbstractCommand {
     }
 
     /**
-     * Функция выводит на экран все элементы коллекции.
      */
     @Override
     public ServerMessage activate(Command command) {

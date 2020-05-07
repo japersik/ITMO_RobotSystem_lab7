@@ -8,6 +8,10 @@ import com.itmo.r3135.System.ServerMessage;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+/**
+ * Класс обработки комадны reg
+ * Регистритует нового пользователя
+ */
 public class RegCommand extends AbstractCommand {
     public RegCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);

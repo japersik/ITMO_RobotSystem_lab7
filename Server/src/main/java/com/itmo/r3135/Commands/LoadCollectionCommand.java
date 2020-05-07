@@ -13,7 +13,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 
-
+/**
+ * Класс загрузки коллекции из базы
+ */
 public class LoadCollectionCommand extends AbstractCommand {
     static final Logger logger = LogManager.getLogger("Loader");
 

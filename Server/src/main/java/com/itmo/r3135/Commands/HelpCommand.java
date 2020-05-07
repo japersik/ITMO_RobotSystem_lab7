@@ -7,20 +7,20 @@ import com.itmo.r3135.System.ServerMessage;
 
 
 /**
+ * Класс обработки комадны help
  * Выводит список доступных команд.
  */
-public class HelpCommand extends AbstractCommand {
 
+public class HelpCommand extends AbstractCommand {
+    /**
+     * Формат вывода подстазок
+     */
     private final String format = "%-30s%5s%n";
-    ;
 
     public HelpCommand(DataManager dataManager, Mediator serverWorker) {
         super(dataManager, serverWorker);
     }
 
-    /**
-     * Выводит список доступных команд.
-     */
     @Override
     public ServerMessage activate(Command command) {
         String s =

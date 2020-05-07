@@ -5,6 +5,10 @@ import com.itmo.r3135.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 
+/**
+ * Класс обработки комадны info
+ * Выводит основную информацию о коллекции
+ */
 public class InfoCommand extends AbstractCommand {
 
     public InfoCommand(DataManager dataManager, Mediator serverWorker) {

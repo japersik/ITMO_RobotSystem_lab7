@@ -7,13 +7,13 @@ import org.apache.logging.log4j.Logger;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Properties;
 import java.util.Scanner;
 
+/**
+ * Класс для работы с почтовым сервером
+ */
 public class MailManager {
     static final Logger logger = LogManager.getLogger("MailManager");
     private Session session;
@@ -23,6 +23,13 @@ public class MailManager {
     private int port;
     private boolean auth;
 
+    /**
+     * @param username Аккаунт, с которого отправляется почта
+     * @param password Пароль пользователя
+     * @param host     Адрес почтового сервера
+     * @param port     Порт почтового сервера
+     * @param auth
+     */
     public MailManager(String username, String password, String host, int port, boolean auth) {
         this.username = username;
         this.password = password;
@@ -31,6 +38,11 @@ public class MailManager {
         this.auth = auth;
     }
 
+    /**
+     * Инициализиреут точтовый клиент
+     *
+     * @return Статус инициализации
+     */
     public boolean initMail() {
         logger.info("Mail Manager connect...");
         try {
@@ -55,6 +67,12 @@ public class MailManager {
         return true;
     }
 
+    /**
+     * Оправляет постое письмо на указанный ардес
+     *
+     * @param eMail Адрес получателя
+     * @return Статус отправки
+     */
     public boolean sendMail(String eMail) {
 
         try {
@@ -76,6 +94,14 @@ public class MailManager {
         return true;
     }
 
+    /**
+     * Оправляет письмо-подтверждение, созданное по HTML-шаблону на указанный ардес
+     *
+     * @param eMail Адрес получателя
+     * @param login Имя пользователя
+     * @param code  Проверочный код
+     * @return Статус отправки
+     */
     public boolean sendMailHTML(String eMail, String login, String code) {
         String htmlText;
         String htmlFileName = "emailTemplate.html";
@@ -91,7 +117,6 @@ public class MailManager {
             logger.error("Error in html file read!");
             return false;
         }
-
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
