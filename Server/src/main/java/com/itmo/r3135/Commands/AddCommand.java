@@ -46,7 +46,7 @@ public class AddCommand extends AbstractCommand {
                 } else {
                     dataManager.getLock().writeLock().unlock();
                     return new ServerMessage("Ошибка добавления элеемнта в коллекцию. Но. В базу он добавлени" +
-                            "Сообщите обэном случае в техническую поддержку.('info')");
+                            "Сообщите об этом случае в техническую поддержку.('info')");
                 }
             }
         }

@@ -24,31 +24,31 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class SpamerWorker implements Executor {
-    private DatagramChannel datagramChannel = DatagramChannel.open();
-    private Sender sender;
-    private Reader reader;
-    private SocketAddress socketAddress;
-    private StringCommandManager stringCommandManager;
+    private final Reader reader;
+    private final Sender sender;
+    private final SocketAddress socketAddress;
+    private final StringCommandManager stringCommandManager;
     private boolean isLogin;
     private boolean isSpam;
     private String login = "";
     private String password = "";
-    private CommandList[] commandLists = {
+
+    private final CommandList[] commandLists = {
 //            CommandList.HELP,
 //            CommandList.INFO,
             CommandList.ADD,
             //    CommandList.SHOW,
-            CommandList.UPDATE,
-            CommandList.REMOVE_BY_ID,
+//            CommandList.UPDATE,
+//            CommandList.REMOVE_BY_ID,
 //            CommandList.CLEAR,
 //            CommandList.EXECUTE_SCRIPT,
-            CommandList.ADD_IF_MIN,
+//            CommandList.ADD_IF_MIN,
             //  CommandList.REMOVE_GREATER,
             //  CommandList.REMOVE_LOWER,
             //  CommandList.GROUP_COUNTING_BY_COORDINATES,
             //  CommandList.FILTER_CONTAINS_NAME,
             //  CommandList.PRINT_FIELD_DESCENDING_PRICE,
-            CommandList.PING
+            //          CommandList.PING
     };
 
 
@@ -66,7 +66,6 @@ public class SpamerWorker implements Executor {
     }
 
     public void spam() {
-        Generator generator = new Generator();
         Random random = new Random();
         Command command;
         try {
@@ -78,15 +77,13 @@ public class SpamerWorker implements Executor {
                 } else if (typeCommand == CommandList.ADD || typeCommand == CommandList.ADD_IF_MIN || typeCommand == CommandList.REMOVE_GREATER ||
                         typeCommand == CommandList.REMOVE_LOWER) {
                     Product product;
-                    while (true) {
-                        product = generator.nextProduct();
-                        if (!product.checkNull()) break;
-                    }
+                    do {
+                        product = Generator.nextProduct();
+                    } while (product.checkNull());
                     command = new Command(typeCommand, product);
                 } else continue;
                 command.setLoginPassword(login, password);
-                System.out.println(login);
-                System.out.println(password);
+                System.out.println("Отправка команды " + command.getCommand());
                 sender.send(command, socketAddress);
                 Thread.sleep(10);
             }
@@ -103,7 +100,7 @@ public class SpamerWorker implements Executor {
         isSpam = false;
         Thread spamer = new Thread(this::spam);
         spamer.setDaemon(true);
-        String commandString = "";
+        String commandString;
         try (Scanner commandReader = new Scanner(System.in)) {
             while (true) {
                 if (!commandReader.hasNextLine()) break;
@@ -122,7 +119,6 @@ public class SpamerWorker implements Executor {
                         spamer.start();
                         isSpam = true;
                     } else System.out.println("Вы не авторизованы");
-                    continue;
                 } else {
                     try {
                         Command command = stringCommandManager.getCommandFromString(commandString);

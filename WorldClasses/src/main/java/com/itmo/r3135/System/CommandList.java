@@ -2,6 +2,9 @@ package com.itmo.r3135.System;
 
 import java.io.Serializable;
 
+/**
+ * Класс доступных комадн сервера
+ */
 public enum CommandList implements Serializable {
     LOAD("LOAD"),
     HELP("help"),

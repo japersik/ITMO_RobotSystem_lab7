@@ -5,6 +5,9 @@ import com.itmo.r3135.World.Product;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * Класс ответа сервера
+ */
 public class ServerMessage implements Serializable {
     private final String message;
     private ArrayList<Product> products;

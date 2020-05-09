@@ -9,9 +9,8 @@ public interface Executor {
     /**
      * Вызывается для обработки принятых данных.
      *
-     * @param data         данные
-     * @param inputAddress адрес отправителя
-     * @return
+     * @param data         Данные
+     * @param inputAddress Адрес отправителя
      */
     void execute(byte[] data, SocketAddress inputAddress);
 }

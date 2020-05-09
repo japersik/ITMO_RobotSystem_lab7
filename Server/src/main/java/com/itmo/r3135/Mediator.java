@@ -5,6 +5,9 @@ import com.itmo.r3135.System.ServerMessage;
 
 import java.sql.SQLException;
 
+/**
+ * Интерфейс обработчика команд
+ */
 public interface Mediator {
     ServerMessage processing(Command command) throws SQLException;
 }

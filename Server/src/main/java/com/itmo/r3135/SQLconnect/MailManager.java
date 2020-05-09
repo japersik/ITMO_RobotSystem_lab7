@@ -1,6 +1,5 @@
 package com.itmo.r3135.SQLconnect;
 
-import com.itmo.r3135.ServerMain;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -106,7 +105,7 @@ public class MailManager {
         String htmlText;
         String htmlFileName = "emailTemplate.html";
 
-        try (InputStream htmlSrteam = ServerMain.class.getClassLoader().getResourceAsStream(htmlFileName);
+        try (InputStream htmlSrteam = getClass().getClassLoader().getResourceAsStream(htmlFileName);
              Scanner s = new Scanner(htmlSrteam).useDelimiter("\\A")) {
             htmlText = s.hasNext() ? s.next() : "";
             htmlText = htmlText.replace("insertLogin", login);

@@ -1,9 +1,6 @@
 package com.itmo.r3135;
 
-import com.itmo.r3135.Connector.Executor;
-import com.itmo.r3135.Connector.PingChecker;
-import com.itmo.r3135.Connector.Reader;
-import com.itmo.r3135.Connector.Sender;
+import com.itmo.r3135.Connector.*;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
@@ -22,11 +19,10 @@ import java.util.Scanner;
 
 
 public class ClientWorker implements Executor {
-    private DatagramChannel datagramChannel = DatagramChannel.open();
-    private Sender sender;
-    private Reader reader;
-    private SocketAddress socketAddress;
-    private StringCommandManager stringCommandManager;
+    private final Sender sender;
+    private final Reader reader;
+    private final SocketAddress socketAddress;
+    private final StringCommandManager stringCommandManager;
 
     private String login = "";
     private String password = "";
@@ -102,7 +98,7 @@ public class ClientWorker implements Executor {
     public void execute(byte[] data, SocketAddress inputAddress) {
         try (
                 ObjectInputStream objectInputStream = new ObjectInputStream(
-                        new ByteArrayInputStream(data));
+                        new ByteArrayInputStream(data))
         ) {
             ServerMessage serverMessage = (ServerMessage) objectInputStream.readObject();
             objectInputStream.close();
