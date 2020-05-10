@@ -66,7 +66,7 @@
                     <finalName>lab7-server</finalName>
                     <archive>
                         <manifest>
-                            <mainClass>com.itmo.r3135.ServerMain</mainClass>
+                            <mainClass>com.itmo.r3135.Server.ServerMain</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

@@ -1,7 +1,7 @@
-package com.itmo.r3135;
+package com.itmo.r3135.Server;
 
-import com.itmo.r3135.SQLconnect.MailManager;
-import com.itmo.r3135.SQLconnect.SQLManager;
+import com.itmo.r3135.Server.SQLconnect.MailManager;
+import com.itmo.r3135.Server.SQLconnect.SQLManager;
 import com.itmo.r3135.World.Product;
 
 import java.util.Date;

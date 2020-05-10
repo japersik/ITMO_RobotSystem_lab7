@@ -1,4 +1,4 @@
-package com.itmo.r3135.SQLconnect;
+package com.itmo.r3135.Server.SQLconnect;
 
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.World.Color;

@@ -1,4 +1,4 @@
-package com.itmo.r3135;
+package com.itmo.r3135.Server;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
