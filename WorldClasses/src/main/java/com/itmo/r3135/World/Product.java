@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * Класс com.itmo.com.itmo.r3135.World.Product.
+ * Класс Коллекции
  */
 public class Product implements Comparable<Product>, Serializable {
     private int id;

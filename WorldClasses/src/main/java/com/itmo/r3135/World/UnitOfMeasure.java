@@ -3,7 +3,7 @@ package com.itmo.r3135.World;
 import java.io.Serializable;
 
 /**
- * Единицы измерения.
+ * Класс единиц измерения.
  */
 public enum UnitOfMeasure implements Serializable {
     PCS("Штуки"),

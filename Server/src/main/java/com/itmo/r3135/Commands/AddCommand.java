@@ -42,7 +42,7 @@ public class AddCommand extends AbstractCommand {
                 if (products.add(addProduct)) {
                     dataManager.updateDateChange();
                     dataManager.getLock().writeLock().unlock();
-                    return new ServerMessage("Элемент успешно добавлен.");
+                    return new ServerMessage("Элемент c id " + id + " успешно добавлен.");
                 } else {
                     dataManager.getLock().writeLock().unlock();
                     return new ServerMessage("Ошибка добавления элеемнта в коллекцию. Но. В базу он добавлени" +
@@ -77,7 +77,7 @@ public class AddCommand extends AbstractCommand {
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 id = resultSet.getInt("id");
-                System.out.println("Added Product id: " + id);
+                logger.info("Added Product id: " + id);
             }
         } catch (SQLException lal) {
             lal.printStackTrace();
@@ -100,7 +100,6 @@ public class AddCommand extends AbstractCommand {
             statement.setString(5, owner.getHairColor().toString());
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) idOwner = resultSet.getInt("id");
-            System.out.println(id);
         } catch (SQLException lal) {
             lal.printStackTrace();
         }

@@ -45,7 +45,7 @@
                     <finalName>lab7-spamer</finalName>
                     <archive>
                         <manifest>
-                            <mainClass>com.itmo.r3135.SpamerMain</mainClass>
+                            <mainClass>com.itmo.r3135.SpammerMain</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

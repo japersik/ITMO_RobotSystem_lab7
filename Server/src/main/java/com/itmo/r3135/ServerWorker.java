@@ -42,8 +42,8 @@ public class ServerWorker implements Mediator, Executor {
     private final AbstractCommand executeScriptCommand;
     private final AbstractCommand infoCommand;
     private final AbstractCommand regCommand;
-    private final ExecutorService executePool = Executors.newFixedThreadPool(30);
-    private final ExecutorService sendPool = Executors.newFixedThreadPool(30);
+    private final ExecutorService executePool = Executors.newFixedThreadPool(50);
+    private final ExecutorService sendPool = Executors.newFixedThreadPool(50);
     private Sender sender;
     private Reader reader;
 
@@ -164,6 +164,7 @@ public class ServerWorker implements Mediator, Executor {
     public void listening() {
         reader.setExecutor(this);
         reader.datagramRead();
+        logger.info("Command reader started!");
     }
 
     @Override
@@ -171,6 +172,8 @@ public class ServerWorker implements Mediator, Executor {
         try (ObjectInputStream objectInputStream = new ObjectInputStream(
                 new ByteArrayInputStream(data))) {
             Command command = (Command) objectInputStream.readObject();
+            logger.info(" New command " + command.getCommand() + " from user " + command.getLogin() + "." +
+                    " Address: " + inputAddress + ".");
             threadProcessing(command, inputAddress);
         } catch (IOException | ClassNotFoundException e) {
             logger.error("Deserialization error!");
@@ -187,7 +190,8 @@ public class ServerWorker implements Mediator, Executor {
     private void threadProcessing(Command command, SocketAddress inputAddress) {
         executePool.execute(() -> {
             ServerMessage message = processing(command);
-            logger.info("Command from " + inputAddress + " complete.");
+            logger.info("Command " + command.getCommand() + " from user " + command.getLogin() + "." +
+                    " Address: " + inputAddress + " complete.");
             threadSend(message, inputAddress);
         });
     }
@@ -213,7 +217,6 @@ public class ServerWorker implements Mediator, Executor {
      */
     @Override
     public ServerMessage processing(Command command) {
-        System.out.println(command.getCommand());
         if (command.getCommand() == CommandList.REG) {
             return regCommand.activate(command);
         } else if (command.getCommand() == CommandList.PING) {
@@ -232,11 +235,11 @@ public class ServerWorker implements Mediator, Executor {
                 dataManager.getSqlManager().clearStatus(
                         dataManager.getSqlManager().getUserId(command.getLogin()));
                 return new ServerMessage("Подтверждение успешно!");
-            } else return new ServerMessage("Код неверный!");
+            } else return new ServerMessage("Код неверный!",false);
         } else if (command.getCommand() != CommandList.LOGIN && dataManager.getSqlManager().isReg(
                 dataManager.getSqlManager().getUserId(command.getLogin()))) {
             return new ServerMessage("Аккаунт не подтверждён! Проведьте почту\n" +
-                    "Отправьте код подтвеждения командой 'code [код]' ");
+                    "Отправьте код подтвеждения командой 'code [код]'",false);
         } else
             try {
                 switch (command.getCommand()) {

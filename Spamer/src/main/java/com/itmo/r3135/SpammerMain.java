@@ -7,7 +7,7 @@ import java.net.SocketAddress;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.Scanner;
 
-public class SpamerMain {
+public class SpammerMain {
     public static void main(String[] args) {
 
         Scanner input = new Scanner(System.in);
@@ -27,7 +27,7 @@ public class SpamerMain {
                     int port = Integer.parseInt(trimString[1]);
                     SocketAddress socketAddress = new InetSocketAddress(addres, port);
                     System.out.println("Запуск прошёл успешно, Потр: " + port + ". Адрес: " + socketAddress);
-                    SpamerWorker worker = new SpamerWorker(socketAddress);
+                    SpammerWorker worker = new SpammerWorker(socketAddress);
                     if (worker.ping() != -1) {
                         //worker.spam();
                         System.out.println("Успешный запуск. Авторизуйтесь через 'login' и введите 'spam' для начала атакию");

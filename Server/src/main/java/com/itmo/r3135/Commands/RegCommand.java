@@ -37,12 +37,17 @@ public class RegCommand extends AbstractCommand {
                 logger.error("Попытка добавления по существующему ключу");
                 return new ServerMessage("Пользователь с именем " + emailParse(command.getLogin()) + " уже существует!");
             }
-            if (dataManager.getMailManager() != null && !dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()),
-                    dataManager.getSqlManager().getUserCode(dataManager.getSqlManager().getUserId(command.getLogin())))) {
+            if (dataManager.getMailManager() != null &&
+                    !dataManager.getMailManager().sendMailHTML(command.getLogin(), emailParse(command.getLogin()),
+                            dataManager.getSqlManager().getUserCode(dataManager.getSqlManager().getUserId(command.getLogin())))) {
                 logger.error("ERROR IN EMAIL SENDING TO " + command.getLogin());
+                dataManager.getSqlManager().clearStatus(dataManager.getSqlManager().getUserId(command.getLogin()));
                 return new ServerMessage("Successful registration!");
             }
-            return new ServerMessage("Successful registration check your email :)");
+            if (dataManager.getMailManager() != null)
+                return new ServerMessage("Successful registration! Check your email :)",false);
+
+            return new ServerMessage("Successful registration.");
 
         } catch (SQLException e) {
             logger.error("Бда, бда SQLException");

@@ -173,7 +173,6 @@ public class Reader {
 
             if (packets.size() > 0)
                 if (packets.size() >= infoPacket.size) {
-                    System.out.println();
                     collected();
                 }
         }
