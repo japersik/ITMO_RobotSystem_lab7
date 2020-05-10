@@ -1,4 +1,4 @@
-package com.itmo.r3135;
+package com.itmo.r3135.Spamer;
 
 import com.itmo.r3135.Connector.Executor;
 import com.itmo.r3135.Connector.PingChecker;
@@ -28,6 +28,9 @@ public class SpammerWorker implements Executor {
     private final Sender sender;
     private final SocketAddress socketAddress;
     private final StringCommandManager stringCommandManager;
+    /**
+     * Список искользуемых для спам-атаки команд.
+     */
     private final CommandList[] commandLists = {
 //            CommandList.HELP,
 //            CommandList.INFO,

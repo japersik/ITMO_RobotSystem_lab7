@@ -1,8 +1,8 @@
-package com.itmo.r3135.Commands;
+package com.itmo.r3135.Server.Commands;
 
 import com.google.gson.JsonSyntaxException;
-import com.itmo.r3135.DataManager;
-import com.itmo.r3135.Mediator;
+import com.itmo.r3135.Server.DataManager;
+import com.itmo.r3135.Server.Mediator;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.World.Person;

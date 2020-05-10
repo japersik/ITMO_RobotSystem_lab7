@@ -1,4 +1,4 @@
-package com.itmo.r3135;
+package com.itmo.r3135.Server;
 
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.ServerMessage;

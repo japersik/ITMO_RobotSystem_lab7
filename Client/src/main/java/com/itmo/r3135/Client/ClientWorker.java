@@ -1,4 +1,4 @@
-package com.itmo.r3135;
+package com.itmo.r3135.Client;
 
 import com.itmo.r3135.Connector.*;
 import com.itmo.r3135.System.Command;

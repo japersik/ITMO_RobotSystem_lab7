@@ -10,7 +10,7 @@ import java.util.ArrayList;
  */
 public class Command implements Serializable {
     private final CommandList command;
-    private ArrayList<Command> ecexuteCommands;
+    private ArrayList<Command> executeCommands;
     private Product product;
     private String string;
     private int intValue;
@@ -47,9 +47,9 @@ public class Command implements Serializable {
         this.intValue = intValue;
     }
 
-    public Command(CommandList command, ArrayList<Command> ecexuteCommands) {
+    public Command(CommandList command, ArrayList<Command> executeCommands) {
         this.command = command;
-        this.ecexuteCommands = ecexuteCommands;
+        this.executeCommands = executeCommands;
     }
 
     public void setLoginPassword(String login, String password) {
@@ -73,8 +73,8 @@ public class Command implements Serializable {
         this.password = password;
     }
 
-    public ArrayList<Command> getEcexuteCommands() {
-        return ecexuteCommands;
+    public ArrayList<Command> getExecuteCommands() {
+        return executeCommands;
     }
 
     public CommandList getCommand() {

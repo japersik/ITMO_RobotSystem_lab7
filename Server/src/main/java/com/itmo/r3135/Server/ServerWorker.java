@@ -1,11 +1,11 @@
-package com.itmo.r3135;
+package com.itmo.r3135.Server;
 
-import com.itmo.r3135.Commands.*;
+import com.itmo.r3135.Server.Commands.*;
 import com.itmo.r3135.Connector.Executor;
 import com.itmo.r3135.Connector.Reader;
 import com.itmo.r3135.Connector.Sender;
-import com.itmo.r3135.SQLconnect.MailManager;
-import com.itmo.r3135.SQLconnect.SQLManager;
+import com.itmo.r3135.Server.SQLconnect.MailManager;
+import com.itmo.r3135.Server.SQLconnect.SQLManager;
 import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;

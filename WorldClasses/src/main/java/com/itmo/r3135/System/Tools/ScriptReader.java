@@ -7,12 +7,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Класс обработки комадны execute_script
+ * Класс выделения набора команд из скрипта
  */
 public class ScriptReader {
     public ScriptReader() {
     }
 
+    /**
+     * Проверяет и анализирует файл скрипта.
+     *
+     * @param script Адрес файла скрипта
+     * @return Лист команд для сервера
+     */
     public static ArrayList<Command> read(String script) {
         ArrayList<Command> executeCommands = new ArrayList<>();
         try {
