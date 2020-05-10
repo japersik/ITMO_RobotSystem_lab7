@@ -5,6 +5,9 @@ import com.itmo.r3135.World.Product;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+/**
+ * Класс запроса на сервер
+ */
 public class Command implements Serializable {
     private final CommandList command;
     private ArrayList<Command> ecexuteCommands;

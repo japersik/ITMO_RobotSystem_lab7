@@ -9,15 +9,14 @@ import java.util.LinkedList;
 import java.util.TreeMap;
 
 /**
- * Класс для извлечения команд из скрипта для последующего выполнения.
+ * Класс для извлечения команд из скрипта.
  */
 public class VirtualStack {
     private final ArrayList<File> activeScriptList;
     private final ArrayList<String> commandStack;
-    private File currentFile;
     private final ArrayList<String> lastRemove;
     private final TreeMap<ArrayList<File>, String> derevo;
-
+    private File currentFile;
 
     {
         activeScriptList = new ArrayList<>();
@@ -27,7 +26,11 @@ public class VirtualStack {
     }
 
     /**
-     * Класс для извлечения команд из скрипта.
+     * Составляет список комадн из текста файла
+     *
+     * @param scriptAddress Адрес файла скрипта
+     * @return Лист команд
+     * @throws IOException
      */
     protected ArrayList stackGenerate(String scriptAddress) throws IOException {
         int i = 0;
@@ -55,6 +58,13 @@ public class VirtualStack {
         return commandStack;
     }
 
+    /**
+     * Преобразует файлы скрипта в лист строк, проверяет циклы
+     *
+     * @param script Адрес скрипта
+     * @return Лист строк
+     * @throws IOException
+     */
     private LinkedList readFile(File script) throws IOException {
         currentFile = script;
         LinkedList<String> CommandList = new LinkedList<>();
@@ -97,7 +107,7 @@ public class VirtualStack {
     }
 
     /**
-     * Метод заменяет абсолютный путь на относителный
+     * Заменяет отновительный путь на абсолютный
      */
     private String relativeToAbsolutePath(String nextExecute) {
         String nextFilePath = nextExecute.trim().split(" ", 2)[1];

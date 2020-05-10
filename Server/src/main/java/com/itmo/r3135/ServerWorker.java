@@ -42,8 +42,8 @@ public class ServerWorker implements Mediator, Executor {
     private final AbstractCommand executeScriptCommand;
     private final AbstractCommand infoCommand;
     private final AbstractCommand regCommand;
-    private ExecutorService executePool = Executors.newFixedThreadPool(30);
-    private ExecutorService sendPool = Executors.newFixedThreadPool(30);
+    private final ExecutorService executePool = Executors.newFixedThreadPool(50);
+    private final ExecutorService sendPool = Executors.newFixedThreadPool(50);
     private Sender sender;
     private Reader reader;
 
@@ -73,7 +73,16 @@ public class ServerWorker implements Mediator, Executor {
         logger.info("Server port set: " + port);
     }
 
-    //метод инициализации базы Данных
+    /**
+     * Инициализирует подключение к базе данных
+     *
+     * @param host         Адрес базы данных
+     * @param port         Порт подключеиня к базе данных
+     * @param dataBaseName Имя базы
+     * @param user         Имя пользователя
+     * @param password     Пароль
+     * @return статус инициализации
+     */
     public boolean SQLInit(String host, int port, String dataBaseName, String user, String password) {
         SQLManager sqlManager = new SQLManager();
         boolean isConnect = sqlManager.initDatabaseConnection(host, port, dataBaseName, user, password);
@@ -83,6 +92,16 @@ public class ServerWorker implements Mediator, Executor {
         return isInit;
     }
 
+    /**
+     * Инициализирует почторый клиент
+     *
+     * @param mailUser     Имя пользователя
+     * @param mailPassword Пароль
+     * @param mailHost     Адрес почтового сервера
+     * @param mailPort     Порт почтового сервера
+     * @param smtpAuth     Режим авторизации
+     * @return Статус инициализцации
+     */
     public boolean mailInit(String mailUser, String mailPassword, String mailHost, int mailPort, boolean smtpAuth) {
         MailManager mailManager = new MailManager(mailUser, mailPassword, mailHost, mailPort, smtpAuth);
         boolean init = mailManager.initMail();
@@ -92,7 +111,11 @@ public class ServerWorker implements Mediator, Executor {
         return init;
     }
 
-
+    /**
+     * Зарускает работу сервера
+     *
+     * @throws IOException
+     */
     public void startWork() throws IOException {
         logger.info("Server start.");
         DatagramSocket datagramSocket = new DatagramSocket(port);
@@ -102,13 +125,16 @@ public class ServerWorker implements Mediator, Executor {
         loadCollectionCommand.activate(new Command(CommandList.LOAD));
         logger.info("Server started on port " + port + ".");
         Thread keyBoard = new Thread(this::keyBoardWork);
-        Thread datagram = new Thread(this::listerine);
+        Thread datagram = new Thread(this::listening);
         keyBoard.setDaemon(false);
         datagram.setDaemon(true);
         keyBoard.start();
         datagram.start();
     }
 
+    /**
+     * Обработка команд с клавиатуры
+     */
     public void keyBoardWork() {
         try (Scanner input = new Scanner(System.in)) {
             input.delimiter();
@@ -132,9 +158,13 @@ public class ServerWorker implements Mediator, Executor {
         }
     }
 
-    public void listerine() {
+    /**
+     * Активирует чтение запросов
+     */
+    public void listening() {
         reader.setExecutor(this);
         reader.datagramRead();
+        logger.info("Command reader started!");
     }
 
     @Override
@@ -142,6 +172,8 @@ public class ServerWorker implements Mediator, Executor {
         try (ObjectInputStream objectInputStream = new ObjectInputStream(
                 new ByteArrayInputStream(data))) {
             Command command = (Command) objectInputStream.readObject();
+            logger.info(" New command " + command.getCommand() + " from user " + command.getLogin() + "." +
+                    " Address: " + inputAddress + ".");
             threadProcessing(command, inputAddress);
         } catch (IOException | ClassNotFoundException e) {
             logger.error("Deserialization error!");
@@ -149,14 +181,27 @@ public class ServerWorker implements Mediator, Executor {
         }
     }
 
+    /**
+     * Запускает поток обработки запроса
+     *
+     * @param command      Команда клиента
+     * @param inputAddress Адрес отправителя
+     */
     private void threadProcessing(Command command, SocketAddress inputAddress) {
         executePool.execute(() -> {
             ServerMessage message = processing(command);
-            logger.info("Command from " + inputAddress + " complete.");
+            logger.info("Command " + command.getCommand() + " from user " + command.getLogin() + "." +
+                    " Address: " + inputAddress + " complete.");
             threadSend(message, inputAddress);
         });
     }
 
+    /**
+     * Запускает поток отправки ответа
+     *
+     * @param message      Сообщение сервера
+     * @param inputAddress Адрес получателя
+     */
     private void threadSend(ServerMessage message, SocketAddress inputAddress) {
         sendPool.execute(() -> {
             logger.info("Sending server message to " + inputAddress + ".");
@@ -164,10 +209,14 @@ public class ServerWorker implements Mediator, Executor {
         });
     }
 
-
+    /**
+     * Обрабатывает запрос клиента
+     *
+     * @param command Комадна клиента
+     * @return Сообщение сервера
+     */
     @Override
     public ServerMessage processing(Command command) {
-        System.out.println(command.getCommand());
         if (command.getCommand() == CommandList.REG) {
             return regCommand.activate(command);
         } else if (command.getCommand() == CommandList.PING) {
@@ -186,11 +235,11 @@ public class ServerWorker implements Mediator, Executor {
                 dataManager.getSqlManager().clearStatus(
                         dataManager.getSqlManager().getUserId(command.getLogin()));
                 return new ServerMessage("Подтверждение успешно!");
-            } else return new ServerMessage("Код неверный!");
+            } else return new ServerMessage("Код неверный!",false);
         } else if (command.getCommand() != CommandList.LOGIN && dataManager.getSqlManager().isReg(
                 dataManager.getSqlManager().getUserId(command.getLogin()))) {
             return new ServerMessage("Аккаунт не подтверждён! Проведьте почту\n" +
-                    "Отправьте код подтвеждения командой 'code [код]' ");
+                    "Отправьте код подтвеждения командой 'code [код]'",false);
         } else
             try {
                 switch (command.getCommand()) {

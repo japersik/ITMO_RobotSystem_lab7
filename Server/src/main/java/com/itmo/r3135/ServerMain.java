@@ -38,7 +38,6 @@ public class ServerMain {
         }
         Properties properties = new Properties();
 
-        //Добавить проверку файла на пригодность
         try (InputStream inputStream = new FileInputStream(propFileName)) {
             logger.info("Loading setting from " + propFile.getAbsolutePath() + ".");
             properties.load(inputStream);
@@ -76,6 +75,12 @@ public class ServerMain {
         }
     }
 
+    /**
+     * Проверяет корректность ввода порта
+     *
+     * @param stringPort Строка, содержащая номер порта
+     * @return Номер порта или -1, если он некорректен
+     */
     private static int portFromString(String stringPort) {
         try {
             int port = Integer.valueOf(stringPort);

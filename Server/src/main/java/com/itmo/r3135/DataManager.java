@@ -9,6 +9,9 @@ import java.util.HashSet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * Класс, хранящий всё необходимое для использования команд.
+ */
 public class DataManager {
     private final Date dateInitialization = new Date();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();

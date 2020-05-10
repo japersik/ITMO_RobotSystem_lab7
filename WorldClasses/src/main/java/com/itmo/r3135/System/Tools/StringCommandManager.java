@@ -8,6 +8,9 @@ import com.itmo.r3135.World.Product;
 
 import java.util.ArrayList;
 
+/**
+ * Класс преобраования строк команд в комадны для отправки серверу
+ */
 public class StringCommandManager {
 
     private final Gson gson = new Gson();

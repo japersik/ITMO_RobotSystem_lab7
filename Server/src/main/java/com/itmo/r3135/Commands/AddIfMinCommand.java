@@ -33,7 +33,7 @@ public class AddIfMinCommand extends AbstractCommand {
                 dataManager.getLock().writeLock().unlock();
                 if (addProduct.compareTo(minElem) < 0) {
                     Command addCommand = new Command(CommandList.ADD, addProduct);
-                    command.setLoginPassword(command.getLogin(),command.getPassword());
+                    addCommand.setLoginPassword(command.getLogin(),command.getPassword());
                     return serverWorker.processing(addCommand);
                 } else {
                     return new ServerMessage("Элемент не минимальный!");
