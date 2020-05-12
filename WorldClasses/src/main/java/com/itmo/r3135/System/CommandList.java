@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Класс доступных комадн сервера
  */
 public enum CommandList implements Serializable {
-    LOAD("LOAD"),
+    LOAD("load"),
     HELP("help"),
     INFO("info"),
     ADD("add"),

@@ -228,7 +228,7 @@ public class ServerWorker implements Mediator, Executor {
         } else if (!dataManager.getSqlManager().checkAccount(command)) {
             return new ServerMessage("Incorrect login or password!\n" +
                     "Command login: 'login [email/name] [password]'\n" +
-                    "Command registration: 'reg [email] [password]'\n", false);
+                    "Command registration: 'reg [email] [password]'", false);
         } else if (command.getCommand() == CommandList.CODE) {
             if (command.getString().equals(dataManager.getSqlManager().getUserCode(
                     dataManager.getSqlManager().getUserId(command.getLogin())))) {

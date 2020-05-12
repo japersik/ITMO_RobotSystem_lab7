@@ -8,7 +8,6 @@ import com.itmo.r3135.System.Command;
 import com.itmo.r3135.System.CommandList;
 import com.itmo.r3135.System.ServerMessage;
 import com.itmo.r3135.System.Tools.StringCommandManager;
-import com.itmo.r3135.World.Generator;
 import com.itmo.r3135.World.Product;
 
 import java.io.ByteArrayInputStream;
@@ -20,43 +19,17 @@ import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Random;
 import java.util.Scanner;
 
 public class SpammerWorker implements Executor {
+    public final Sender sender;
+    public final SocketAddress socketAddress;
     private final Reader reader;
-    private final Sender sender;
-    private final SocketAddress socketAddress;
-    private final StringCommandManager stringCommandManager;
-    /**
-     * Список искользуемых для спам-атаки команд.
-     */
-    private final CommandList[] commandLists = {
-//            CommandList.HELP,
-//            CommandList.INFO,
-            CommandList.ADD,
-//            CommandList.SHOW,
-//            CommandList.UPDATE,
-//            CommandList.REMOVE_BY_ID,
-//            CommandList.CLEAR,
-//            CommandList.EXECUTE_SCRIPT,
-//            CommandList.ADD_IF_MIN,
-//            CommandList.REMOVE_GREATER,
-//            CommandList.REMOVE_LOWER,
-//            CommandList.GROUP_COUNTING_BY_COORDINATES,
-//            CommandList.FILTER_CONTAINS_NAME,
-//            CommandList.PRINT_FIELD_DESCENDING_PRICE,
-//            CommandList.PING
-    };
-    private boolean isLogin;
-    private boolean isSpam;
-    private String login = "";
-    private String password = "";
-
-    {
-        stringCommandManager = new StringCommandManager();
-    }
-
+    private final StringCommandManager stringCommandManager = new StringCommandManager();
+    private final SpamTools spamrun = new SpamTools(this);
+    public boolean isLogin = false;
+    public String login = "";
+    public String password = "";
 
     public SpammerWorker(SocketAddress socketAddress) throws IOException {
         this.socketAddress = socketAddress;
@@ -66,63 +39,21 @@ public class SpammerWorker implements Executor {
         reader.setExecutor(this);
     }
 
-    public void spam() {
-        Random random = new Random();
-        Command command;
-        try {
-            while (isLogin) {
-                CommandList typeCommand = commandLists[random.nextInt(commandLists.length)];
-                if (typeCommand == CommandList.PING || typeCommand == CommandList.HELP || typeCommand == CommandList.INFO ||
-                        typeCommand == CommandList.SHOW || typeCommand == CommandList.CLEAR ||
-                        typeCommand == CommandList.PRINT_FIELD_DESCENDING_PRICE ||
-                        typeCommand == CommandList.GROUP_COUNTING_BY_COORDINATES) {
-                    command = new Command(typeCommand);
-                } else if (typeCommand == CommandList.ADD || typeCommand == CommandList.ADD_IF_MIN ||
-                        typeCommand == CommandList.REMOVE_GREATER || typeCommand == CommandList.REMOVE_LOWER) {
-                    Product product;
-                    do {
-                        product = Generator.nextProduct();
-                    } while (product.checkNull());
-                    command = new Command(typeCommand, product);
-                } else continue;
-                command.setLoginPassword(login, password);
-                System.out.println("Отправка команды " + command.getCommand());
-                sender.send(command, socketAddress);
-                Thread.sleep(10);
-            }
-        } catch (InterruptedException e) {
-            System.out.println("Спам атака была остановлена.");
-        }
-        System.out.println("Спам-атака завершена!");
-    }
 
     public void startWork() {
         reader.startListening();
-        isLogin = false;
-        isSpam = false;
-        Thread spamer = new Thread(this::spam);
-        spamer.setDaemon(true);
         String commandString;
         try (Scanner commandReader = new Scanner(System.in)) {
             while (true) {
-                if (!commandReader.hasNextLine()) break;
                 System.out.print("//: ");
+                if (!commandReader.hasNextLine()) break;
                 commandString = commandReader.nextLine();
-                if (isSpam) {
-                    spamer.interrupt();
-                    isSpam = false;
-                    System.out.println("Спам-атака остановлена");
+                if (spamrun.isSpam()) {
+                    spamrun.stopSpam();
                 }
                 if (commandString.equals("exit"))
                     break;
-                if (commandString.equals("spam")) {
-                    if (isLogin) {
-                        spamer = new Thread(this::spam);
-                        spamer.start();
-                        isSpam = true;
-                        System.out.println("Спам-анака начата");
-                    } else System.out.println("Вы не авторизованы");
-                } else {
+                if (!spamrun.execute(commandString) && !commandString.isEmpty()) {
                     try {
                         Command command = stringCommandManager.getCommandFromString(commandString);
                         if (command != null) {
@@ -162,13 +93,14 @@ public class SpammerWorker implements Executor {
             if (serverMessage != null) {
                 isLogin = serverMessage.getLogin();
                 if (!isLogin) System.out.println(serverMessage.getMessage());
-                else if (isSpam) {
+                else if (spamrun.isSpam()) {
 
                 } else {
                     if (serverMessage.getMessage() != null)
                         System.out.println(serverMessage.getMessage());
                     if (serverMessage.getProducts() != null)
                         for (Product p : serverMessage.getProducts()) System.out.println(p);
+                    System.out.print("//: ");
                 }
             }
         } catch (IOException | ClassNotFoundException e) {

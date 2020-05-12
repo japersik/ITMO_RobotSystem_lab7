@@ -1,5 +1,7 @@
 package com.itmo.r3135.Client;
 
+import com.itmo.r3135.World.Generator;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.PortUnreachableException;
@@ -9,6 +11,7 @@ import java.util.Scanner;
 
 public class ClientMain {
     public static void main(String[] args) {
+        System.out.println(Generator.nextGsonProduct());
         Scanner input = new Scanner(System.in);
         while (true) {
             System.out.println("Для начала работы с коллекцией ведите адрес сервера в формате \"адрес:порт\" или 'exit' для завершенеия программы.");
