@@ -107,7 +107,7 @@ public class Sender {
     /**
      * Сериализация объекта
      *
-     * @param serObject Сериализаемый объект
+     * @param serObject Сериализуемый объект
      * @return Объект в сериализованном виде
      */
     private <T> byte[] toSerial(T serObject) {
