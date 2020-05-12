@@ -169,7 +169,7 @@ public class SpamTools {
                         String.format(format, "spam show", "Показать используемые комадны для атаки") +
                         String.format(format, "spam all", "Показать все доступные комадны для атаки") +
                         String.format(format, "spam add [command]", "Добавить команду для атаки") +
-                        String.format(format, "spam remove [command]", "Добавить команду из списка для атаки") +
+                        String.format(format, "spam remove [command]", "Удалить команду из списка для атаки") +
                         String.format(format, "spam delay [millis]", "Установить задержку между отправкой команд.") +
 
                         ("");

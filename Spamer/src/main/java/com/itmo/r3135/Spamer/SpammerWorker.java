@@ -94,7 +94,7 @@ public class SpammerWorker implements Executor {
                 isLogin = serverMessage.getLogin();
                 if (!isLogin) System.out.println(serverMessage.getMessage());
                 else if (spamrun.isSpam()) {
-
+                    //обработка пришедших сообшений для spam - режима
                 } else {
                     if (serverMessage.getMessage() != null)
                         System.out.println(serverMessage.getMessage());

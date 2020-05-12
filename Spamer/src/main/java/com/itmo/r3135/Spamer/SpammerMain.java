@@ -29,12 +29,10 @@ public class SpammerMain {
                     System.out.println("Запуск прошёл успешно, Потр: " + port + ". Адрес: " + socketAddress);
                     SpammerWorker worker = new SpammerWorker(socketAddress);
                     if (worker.ping() != -1) {
-                        //worker.spam();
-                        System.out.println("Успешный запуск. Авторизуйтесь через 'login' и введите 'spam' для начала атакию");
+                        System.out.println("Успешный запуск. Авторизуйтесь и введите 'spam' для начала атаки.");
                         worker.startWork();
                         break;
                     }
-
                 } catch (NumberFormatException e) {
                     System.out.println("Ошибка в записи номера порта.");
                 } catch (IndexOutOfBoundsException | UnresolvedAddressException e) {
@@ -45,7 +43,6 @@ public class SpammerMain {
                     System.out.println(e);
                 }
             }
-
         }
         System.out.println("Работа программы завершена.");
     }
