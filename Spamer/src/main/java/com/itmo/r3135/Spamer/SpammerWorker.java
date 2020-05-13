@@ -35,7 +35,7 @@ public class SpammerWorker implements Executor {
         this.socketAddress = socketAddress;
         DatagramChannel datagramChannel = DatagramChannel.open();
         sender = new Sender(datagramChannel);
-        reader = new Reader(socketAddress, datagramChannel);
+        reader = new Reader(datagramChannel);
         reader.setExecutor(this);
     }
 

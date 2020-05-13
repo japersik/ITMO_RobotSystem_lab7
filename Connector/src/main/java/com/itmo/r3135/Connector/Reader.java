@@ -22,13 +22,13 @@ public class Reader {
     /**
      * Полный размер пакета
      */
-    private static final int FULL_SIZE = 64016;
+    private static final int FULL_SIZE = 1016;
     /**
      * Полезных данных в пакете
      */
     private static final int DATA_SIZE = FULL_SIZE - HEAD_SIZE;
 
-    private final SocketAddress socketAddress;
+
     private final boolean datagramMode;
     private final HashMap<Integer, Collector> collectors = new HashMap<>();
     private Executor executor;
@@ -39,11 +39,10 @@ public class Reader {
      * Создаёт приёмник данных, использующий DatagramChannel
      *
      * @param datagramChannel Рабочий канал
-     * @param socketAddress   Слушаемый адрес
      */
-    public Reader(SocketAddress socketAddress, DatagramChannel datagramChannel) {
+    public Reader(DatagramChannel datagramChannel) {
         this.datagramMode = false;
-        this.socketAddress = socketAddress;
+
         this.datagramChannel = datagramChannel;
 
     }
@@ -51,11 +50,9 @@ public class Reader {
     /**
      * Создаёт приёмник данных, использующий DatagramSocket
      *
-     * @param socketAddress Слушаемый адрес
      */
-    public Reader(SocketAddress socketAddress, DatagramSocket datagramSocket) {
+    public Reader(DatagramSocket datagramSocket) {
         this.datagramMode = true;
-        this.socketAddress = socketAddress;
         this.datagramSocket = datagramSocket;
 
     }
@@ -85,8 +82,10 @@ public class Reader {
             try {
                 DatagramPacket datagramPacket = new DatagramPacket(new byte[FULL_SIZE], FULL_SIZE);
                 datagramSocket.receive(datagramPacket);
+                System.out.println("Wow, new packet");
                 workWithPacket(datagramPacket);
             } catch (IOException e) {
+                System.out.println("lalalalala "+ e);
                 // логирование
             }
     }

@@ -85,7 +85,7 @@ public class SpamTools {
             if (spammerWorker.isLogin) {
                 if (trimCommand.length == 1) {
                     helpCommand();
-                    return false;
+                    return true;
                 } else
                     trimCommand = trimCommand[1].trim().split(" ", 2);
                 try {
