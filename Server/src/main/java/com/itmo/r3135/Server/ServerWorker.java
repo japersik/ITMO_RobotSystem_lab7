@@ -120,7 +120,7 @@ public class ServerWorker implements Mediator, Executor {
         logger.info("Server start.");
         DatagramSocket datagramSocket = new DatagramSocket(port);
         sender = new Sender(datagramSocket);
-        reader = new Reader(new InetSocketAddress(port), datagramSocket);
+        reader = new Reader(datagramSocket);
         logger.info("Load collection.");
         loadCollectionCommand.activate(new Command(CommandList.LOAD));
         logger.info("Server started on port " + port + ".");
@@ -137,7 +137,6 @@ public class ServerWorker implements Mediator, Executor {
      */
     public void keyBoardWork() {
         try (Scanner input = new Scanner(System.in)) {
-            input.delimiter();
             while (true) {
                 System.out.print("//: ");
                 if (input.hasNextLine()) {

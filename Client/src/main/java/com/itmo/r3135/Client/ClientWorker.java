@@ -36,7 +36,7 @@ public class ClientWorker implements Executor {
         this.socketAddress = socketAddress;
         DatagramChannel datagramChannel = DatagramChannel.open();
         sender = new Sender(datagramChannel);
-        reader = new Reader(socketAddress, datagramChannel);
+        reader = new Reader(datagramChannel);
         reader.setExecutor(this);
     }
 

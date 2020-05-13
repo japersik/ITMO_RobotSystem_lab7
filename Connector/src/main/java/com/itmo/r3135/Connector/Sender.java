@@ -26,7 +26,7 @@ public class Sender {
     /**
      * Полный размер пакета
      */
-    private static final int FULL_SIZE = 64016;
+    private static final int FULL_SIZE = 1016;
     /**
      * Полезных данных в пакете
      */
