@@ -82,11 +82,10 @@ public class Reader {
             try {
                 DatagramPacket datagramPacket = new DatagramPacket(new byte[FULL_SIZE], FULL_SIZE);
                 datagramSocket.receive(datagramPacket);
-                System.out.println("Wow, new packet");
+//               System.out.println("Wow, new packet");
                 workWithPacket(datagramPacket);
             } catch (IOException e) {
-                System.out.println("lalalalala "+ e);
-                // логирование
+//                 логирование
             }
     }
 
