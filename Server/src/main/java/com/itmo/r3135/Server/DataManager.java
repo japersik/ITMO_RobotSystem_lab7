@@ -17,7 +17,6 @@ public class DataManager {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private HashSet<Product> products = new HashSet<>();
     private SQLManager sqlManager;
-    private Date dateSave = new Date();
     private Date dateChange = new Date();
     private MailManager mailManager;
 
@@ -56,12 +55,8 @@ public class DataManager {
         this.products = products;
     }
 
-    public void uptadeDateChange() {
+    public void updateDateChange() {
         this.dateChange = new Date();
-    }
-
-    public void updateDateSave() {
-        this.dateSave = new Date();
     }
 
     @Override
@@ -71,11 +66,7 @@ public class DataManager {
                 "\n------------------------" +
                 "\n Количество элементов коллекции: " + products.size() +
                 "\n Дата инициализации: " + dateInitialization +
-                "\n Дата последнего сохранения: " + dateSave +
                 "\n Дата последнего изменения: " + dateChange;
     }
 
-    public void updateDateChange() {
-        this.dateSave = new Date();
-    }
 }

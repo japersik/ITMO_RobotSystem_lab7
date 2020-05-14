@@ -23,7 +23,7 @@ public class SQLManager {
      * @param port         Порт подключения
      * @param dataBaseName Имя базы данных
      * @param user         Имя пользователя в базе
-     * @param password     Имя пользователя
+     * @param password     Пароль пользователя
      * @return Статус подключения
      */
     public boolean initDatabaseConnection(String host, int port, String dataBaseName, String user, String password) {
