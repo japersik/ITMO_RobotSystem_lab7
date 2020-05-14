@@ -51,7 +51,7 @@ public class RemoveByIdCommand extends AbstractCommand {
                 dataManager.getLock().writeLock().unlock();
                 return new ServerMessage("Элемент с id " + id + " не существует. Или принадлежит не Вам.");
             }
-            dataManager.uptadeDateChange();
+            dataManager.updateDateChange();
             dataManager.getLock().writeLock().unlock();
             return new ServerMessage("Элемент коллекции успешно удалён.");
         } else {
